@@ -39,25 +39,26 @@ export declare type SchemaNumber = SchemaBase<number> & {
 export declare type SchemaBoolean = SchemaBase<boolean> & {
     readonly type: 'boolean';
 };
-export declare type SchemaObject = SchemaBase<any> & {
+export declare type SchemaObject<T extends object> = SchemaBase<T> & {
     readonly type: 'object';
     readonly props?: {
-        readonly [key: string]: Schema;
+        readonly [K in keyof Required<T>]: Schema<T[K]>;
     };
-    readonly entry?: Schema;
+    readonly entry?: Schema<any>;
     readonly arbitrary?: boolean;
 };
-export declare type SchemaArray = SchemaBase<any[]> & {
+export declare type SchemaArray<T extends unknown[]> = SchemaBase<T> & {
     readonly type: 'array';
-    readonly item?: Schema;
+    readonly item?: Schema<T[0]>;
     readonly key?: string;
     readonly allowEmpty?: boolean;
     readonly minLength?: number;
     readonly maxLength?: number;
 };
-export declare type SchemaTuple = SchemaBase<any[]> & {
+declare type Wrap<T> = T extends [infer Head, ...infer Tail] ? [Schema<Head>, ...Wrap<Tail>] : T;
+export declare type SchemaTuple<T extends unknown[]> = SchemaBase<[...T]> & {
     readonly type: 'tuple';
-    readonly items: Schema[];
+    readonly items: Wrap<T>;
 };
 export declare type SchemaFunction = SchemaBase<Function> & {
     readonly type: 'function';
@@ -65,7 +66,7 @@ export declare type SchemaFunction = SchemaBase<Function> & {
 export declare type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 };
-export declare type Schema = (SchemaString | SchemaNumber | SchemaObject | SchemaTuple | SchemaArray | SchemaBoolean | SchemaFunction | SchemaAny);
+export declare type Schema<T = any> = T extends Function ? (SchemaFunction | SchemaAny) : T extends any[] ? (SchemaArray<T> | SchemaTuple<T> | SchemaAny) : T extends object ? (SchemaObject<T> | SchemaAny) : T extends string ? (SchemaString | SchemaAny) : T extends number ? (SchemaNumber | SchemaAny) : T extends boolean ? (SchemaBoolean | SchemaAny) : never;
 export declare type DiffBase<T> = {
     readonly action: 'add';
     readonly newValue: (T | null);
@@ -99,7 +100,7 @@ export declare type DiffAny = DiffBase<any> & {
 };
 export declare type DiffObject = DiffBase<any> & {
     readonly type: 'object';
-    readonly schema: SchemaObject;
+    readonly schema: SchemaObject<any>;
 } & {
     readonly props: {
         readonly [key: string]: Diff;
@@ -107,13 +108,13 @@ export declare type DiffObject = DiffBase<any> & {
 };
 export declare type DiffTuple = DiffBase<any[]> & {
     readonly type: 'tuple';
-    readonly schema: SchemaTuple;
+    readonly schema: SchemaTuple<any[]>;
 } & {
     readonly items: (Diff | undefined)[];
 };
 export declare type DiffArray = DiffBase<any[]> & {
     readonly type: 'array';
-    readonly schema: SchemaArray;
+    readonly schema: SchemaArray<any[]>;
 } & {
     readonly items: (Diff | undefined)[];
 };
@@ -126,13 +127,13 @@ export declare type ValidateOptions = {
     readonly partial?: boolean;
     readonly fallback?: true;
 };
-export declare const validate: (value: any, schema: Schema, options?: ValidateOptions | undefined) => Issue[];
+export declare const validate: <T>(value: T | null | undefined, schema: Schema<T>, options?: ValidateOptions | undefined) => Issue[];
 export declare type CompareOptions = {
     readonly srcPartial?: boolean;
     readonly dstPartial?: boolean;
 };
-export declare const compare: (src: any, dst: any, schema: Schema, options?: CompareOptions | undefined) => (Diff | undefined);
-export declare const assert: <T>(value: any, schema: Schema, options?: ValidateOptions | undefined) => T;
+export declare const compare: <T>(src: any, dst: any, schema: Schema<any>, options?: CompareOptions | undefined) => (Diff | undefined);
+export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: ValidateOptions | undefined) => T;
 export declare const INTEGER_RGEXP: RegExp;
 export declare const NUMBER_REGEXP: RegExp;
 export declare const POSITIVE_INTEGER_RGEXP: RegExp;
@@ -152,3 +153,4 @@ export declare const WIN32_PATH_REGEXP: RegExp;
 export declare const USERNAME_REGEXP: RegExp;
 export declare const COMPLEX_PASSWORD_REGEXP: RegExp;
 export declare const MODERATE_PASSWORD_REGEXP: RegExp;
+export {};

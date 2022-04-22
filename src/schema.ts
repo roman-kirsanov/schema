@@ -138,27 +138,29 @@ export type SchemaBoolean = SchemaBase<boolean> & {
     readonly type: 'boolean';
 }
 
-export type SchemaObject = SchemaBase<any> & {
+export type SchemaObject<T extends object> = SchemaBase<T> & {
     readonly type: 'object';
     readonly props?: {
-        readonly [key: string]: Schema;
+        readonly [K in keyof Required<T>]: Schema<T[K]>;
     },
-    readonly entry?: Schema;
+    readonly entry?: Schema<any>;
     readonly arbitrary?: boolean;
 }
 
-export type SchemaArray = SchemaBase<any[]> & {
+export type SchemaArray<T extends unknown[]> = SchemaBase<T> & {
     readonly type: 'array';
-    readonly item?: Schema;
+    readonly item?: Schema<T[0]>;
     readonly key?: string;
     readonly allowEmpty?: boolean;
     readonly minLength?: number;
     readonly maxLength?: number;
 }
 
-export type SchemaTuple = SchemaBase<any[]> & {
+type Wrap<T> = T extends [ infer Head, ...infer Tail ] ? [ Schema<Head>, ...Wrap<Tail> ] : T;
+
+export type SchemaTuple<T extends unknown[]> = SchemaBase<[ ...T ]> & {
     readonly type: 'tuple';
-    readonly items: Schema[];
+    readonly items: Wrap<T>;
 }
 
 export type SchemaFunction = SchemaBase<Function> & {
@@ -169,7 +171,14 @@ export type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 }
 
-export type Schema = (SchemaString | SchemaNumber | SchemaObject | SchemaTuple | SchemaArray | SchemaBoolean | SchemaFunction | SchemaAny);
+export type Schema<T = any> =
+    T extends Function ? (SchemaFunction | SchemaAny) :
+    T extends any[] ? (SchemaArray<T> | SchemaTuple<T> | SchemaAny) :
+    T extends object ? (SchemaObject<T> | SchemaAny) :
+    T extends string ? (SchemaString | SchemaAny) :
+    T extends number ? (SchemaNumber | SchemaAny) :
+    T extends boolean ? (SchemaBoolean | SchemaAny) :
+    never;
 
 export type DiffBase<T> = {
     readonly action: 'add';
@@ -210,7 +219,7 @@ export type DiffAny = DiffBase<any> & {
 
 export type DiffObject = DiffBase<any> & {
     readonly type: 'object';
-    readonly schema: SchemaObject;
+    readonly schema: SchemaObject<any>;
 } & {
     readonly props: {
         readonly [key: string]: Diff;
@@ -219,14 +228,14 @@ export type DiffObject = DiffBase<any> & {
 
 export type DiffTuple = DiffBase<any[]> & {
     readonly type: 'tuple';
-    readonly schema: SchemaTuple;
+    readonly schema: SchemaTuple<any[]>;
 } & {
     readonly items: (Diff | undefined)[];
 }
 
 export type DiffArray = DiffBase<any[]> & {
     readonly type: 'array';
-    readonly schema: SchemaArray;
+    readonly schema: SchemaArray<any[]>;
 } & {
     readonly items: (Diff | undefined)[];
 }
@@ -243,8 +252,8 @@ export type ValidateOptions = {
     readonly fallback?: true;
 }
 
-export const validate = (value: any, schema: Schema, options?: ValidateOptions): Issue[] => {
-    const proc = (obj: any, prop: (string | number), schema: Schema, path: string): Issue[] => {
+export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, options?: ValidateOptions): Issue[] => {
+    const proc = (obj: any, prop: (string | number), schema: Schema<T>, path: string): Issue[] => {
         if ((obj[prop] !== null) && (obj[prop] !== undefined)) {
             let ret: Issue[] = [];
             if (schema.type === 'string') {
@@ -301,7 +310,7 @@ export const validate = (value: any, schema: Schema, options?: ValidateOptions):
                     const schProps = Object.entries(schema.props ?? {});
                     const arbitrary = schema.arbitrary ?? (isSet(schema.props) === false);
                     for (const [ propName, propSchema ] of schProps) {
-                        ret = [ ...ret, ...proc(obj[prop], propName, propSchema, `${path}.${propName}`) ];
+                        ret = [ ...ret, ...proc(obj[prop], propName, (propSchema as any), `${path}.${propName}`) ];
                     }
                     if (arbitrary === false) {
                         for (const [ propName ] of objProps) {
@@ -314,7 +323,7 @@ export const validate = (value: any, schema: Schema, options?: ValidateOptions):
                     }
                     if (isSet(schema.entry)) {
                         for (const [ propName ] of objProps) {
-                            ret = [ ...ret, ...proc(obj[prop], propName, schema.entry, `${path}.${propName}`) ];
+                            ret = [ ...ret, ...proc(obj[prop], propName, (schema.entry as any), `${path}.${propName}`) ];
                         }
                     }
                     if (isSet(schema.equal) && !isDeepEqual(schema.equal, obj[prop])) {
@@ -448,8 +457,8 @@ export type CompareOptions = {
     readonly dstPartial?: boolean;
 }
 
-export const compare = (src: any, dst: any, schema: Schema, options?: CompareOptions): (Diff | undefined) => {
-    const proc = (src: any, dst: any, schema: Schema): (Diff | undefined) => {
+export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: CompareOptions): (Diff | undefined) => {
+    const proc = (src: any, dst: any, schema: Schema<any>): (Diff | undefined) => {
         if ((schema.type === 'string')
         || (schema.type === 'number')
         || (schema.type === 'integer')
@@ -699,7 +708,7 @@ export const compare = (src: any, dst: any, schema: Schema, options?: CompareOpt
     return proc(src, dst, schema);
 }
 
-export const assert = <T>(value: any, schema: Schema, options?: ValidateOptions): T => {
+export const assert = <T>(value: (T | undefined | null), schema: Schema<T>, options?: ValidateOptions): T => {
     const value_ = ((value === undefined) ? (options?.fallback === true ? schema.fallback : undefined) : value);
     const issues = validate(value_, schema, options);
     if (issues.length > 0) {
