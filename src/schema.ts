@@ -112,8 +112,8 @@ export const isDeepEqual = (value: any, value2: any): boolean => {
 }
 
 export type SchemaBase<T> = {
-    readonly optional?: boolean;
-    readonly nullable?: boolean;
+    readonly optional: (T extends any ? (boolean | undefined) : T extends undefined ? true : false);
+    readonly nullable: (T extends any ? (boolean | undefined) : T extends null ? true : false);
     readonly fallback?: (T | null);
     readonly equal?: T;
     readonly oneOf?: T[];

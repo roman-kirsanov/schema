@@ -17,8 +17,8 @@ export declare const ifEmpty: (value: any, value2: string) => string;
 export declare const isCyclic: (value: any) => boolean;
 export declare const isDeepEqual: (value: any, value2: any) => boolean;
 export declare type SchemaBase<T> = {
-    readonly optional?: boolean;
-    readonly nullable?: boolean;
+    readonly optional: (T extends any ? (boolean | undefined) : T extends undefined ? true : false);
+    readonly nullable: (T extends any ? (boolean | undefined) : T extends null ? true : false);
     readonly fallback?: (T | null);
     readonly equal?: T;
     readonly oneOf?: T[];
