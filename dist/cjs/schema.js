@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_RGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_RGEXP = exports.NUMBER_REGEXP = exports.INTEGER_RGEXP = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotSet = exports.isNonEmpty = exports.isEmpty = exports.isNotSet = exports.isSet = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
+exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.ISO_DATE_HHMMSS_REGEXP = exports.ISO_DATE_HHMM_REGEXP = exports.ISO_DATE_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_RGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_RGEXP = exports.NUMBER_REGEXP = exports.INTEGER_RGEXP = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotSet = exports.isNonEmpty = exports.isEmpty = exports.isNotSet = exports.isSet = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
 const isPrototypeOf = (value, proto) => {
     if (!value || !proto)
         return false;
@@ -638,6 +638,9 @@ exports.POSITIVE_INTEGER_RGEXP = /^\d+$/;
 exports.POSITIVE_NUMBER_REGEXP = /^\d*(\.\d+)?$/;
 exports.NEGATIVE_INTEGER_RGEXP = /^-\d+$/;
 exports.NEGATIVE_NUMBER_REGEXP = /^-\d*(\.\d+)?$/;
+exports.ISO_DATE_REGEXP = /^\d{4}-(([0][0-9])|([1][012]))-(([012][1-9])|([3][01]))$/;
+exports.ISO_DATE_HHMM_REGEXP = /^\d{4}-(([0][0-9])|([1][012]))-(([012][0-9])|([3][01]))(T|\ )(([01][0-9])|([2][0-3]))\:[0-5][0-9]$/;
+exports.ISO_DATE_HHMMSS_REGEXP = /^\d{4}-(([0][0-9])|([1][012]))-(([012][0-9])|([3][01]))(T|\ )(([01][0-9])|([2][0-3]))\:[0-5][0-9]\:[0-5][0-9]$/;
 exports.DATETIME_REGEXP = /^[+-]?\d{4}-[01]\d-[0-3]\d(T[0-2]\d:[0-5]\d?(:[0-5]\d(\.\d+)?)?([+-][0-2]\d:[0-5]\d)?Z?)?$/;
 exports.EMAIL_REGEXP = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 exports.URL_REGEXP = /^(?:http|https):\/\/[A-Za-z0-9\-]{0,63}(\.[A-Za-z0-9\-]{0,63})+(:\d{1,4})?\/*(\/*[A-Za-z0-9\-._]+\/*)*(\?.*)?(#.*)?$/;
