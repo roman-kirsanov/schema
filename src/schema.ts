@@ -708,11 +708,15 @@ export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: Co
     return proc(src, dst, schema);
 }
 
-export const assert = <T>(value: (T | undefined | null), schema: Schema<T>, options?: ValidateOptions): T => {
+export type AssertOptions = ValidateOptions & {
+    readonly description?: boolean;
+}
+
+export const assert = <T>(value: (T | undefined | null), schema: Schema<T>, options?: AssertOptions): T => {
     const value_ = ((value === undefined) ? (options?.fallback === true ? schema.fallback : undefined) : value);
     const issues = validate(value_, schema, options);
     if (issues.length > 0) {
-        throw new Error(`assertion failed: ${issues.map(({ path, message }) => `${path.length > 0 ? `${path}: ` : ''}${message}`).join(', ')}`);
+        throw new Error(`${options?.description ? `${options.description} ` : ''}assertion failed: ${issues.map(({ path, message }) => `${path.length > 0 ? `${path}: ` : ''}${message}`).join(', ')}`);
     } else {
         return value_;
     }

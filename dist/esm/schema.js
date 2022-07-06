@@ -602,7 +602,7 @@ export const assert = (value, schema, options) => {
     const value_ = ((value === undefined) ? ((options === null || options === void 0 ? void 0 : options.fallback) === true ? schema.fallback : undefined) : value);
     const issues = validate(value_, schema, options);
     if (issues.length > 0) {
-        throw new Error(`assertion failed: ${issues.map(({ path, message }) => `${path.length > 0 ? `${path}: ` : ''}${message}`).join(', ')}`);
+        throw new Error(`${(options === null || options === void 0 ? void 0 : options.description) ? `${options.description} ` : ''}assertion failed: ${issues.map(({ path, message }) => `${path.length > 0 ? `${path}: ` : ''}${message}`).join(', ')}`);
     }
     else {
         return value_;
