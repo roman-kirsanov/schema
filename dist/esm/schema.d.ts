@@ -134,7 +134,7 @@ export declare type CompareOptions = {
 };
 export declare const compare: <T>(src: any, dst: any, schema: Schema<any>, options?: CompareOptions | undefined) => (Diff | undefined);
 export declare type AssertOptions = ValidateOptions & {
-    readonly description?: boolean;
+    readonly description?: string;
 };
 export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions | undefined) => T;
 export declare const INTEGER_RGEXP: RegExp;

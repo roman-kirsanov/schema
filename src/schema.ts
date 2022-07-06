@@ -709,7 +709,7 @@ export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: Co
 }
 
 export type AssertOptions = ValidateOptions & {
-    readonly description?: boolean;
+    readonly description?: string;
 }
 
 export const assert = <T>(value: (T | undefined | null), schema: Schema<T>, options?: AssertOptions): T => {
