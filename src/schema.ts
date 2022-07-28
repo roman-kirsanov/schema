@@ -142,7 +142,12 @@ export type SchemaObject<T extends object> = SchemaBase<T> & {
     readonly type: 'object';
     readonly entry?: Schema<any>;
 } & ({
-    readonly arbitrary?: false;
+    readonly arbitrary?: boolean;
+    readonly props?: {
+        readonly [K in keyof Required<T>]: Schema<T[K]>;
+    }
+} | {
+    readonly arbitrary: false;
     readonly props?: {
         readonly [K in keyof Required<T>]: Schema<T[K]>;
     }
