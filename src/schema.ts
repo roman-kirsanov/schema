@@ -189,7 +189,7 @@ export type Schema<T = any> =
     T extends string ? (SchemaString | SchemaAny) :
     T extends number ? (SchemaNumber | SchemaAny) :
     T extends boolean ? (SchemaBoolean | SchemaAny) :
-    never;
+    SchemaAny;
 
 export type DiffBase<T> = {
     readonly action: 'add';
