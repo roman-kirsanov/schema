@@ -77,7 +77,7 @@ export declare type SchemaFunction = SchemaBase<Function> & {
 export declare type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 };
-export declare type Schema<T = any> = T extends Function ? (SchemaFunction | SchemaAny) : T extends any[] ? (SchemaArray<T> | SchemaTuple<T> | SchemaAny) : T extends object ? (SchemaObject<T> | SchemaAny) : T extends string ? (SchemaString | SchemaAny) : T extends number ? (SchemaNumber | SchemaAny) : T extends boolean ? (SchemaBoolean | SchemaAny) : SchemaAny | SchemaAny;
+export declare type Schema<T = any> = (T extends Function ? (SchemaFunction | SchemaAny) : T extends any[] ? (SchemaArray<T> | SchemaTuple<T> | SchemaAny) : T extends object ? (SchemaObject<T> | SchemaAny) : T extends string ? (SchemaString | SchemaAny) : T extends number ? (SchemaNumber | SchemaAny) : T extends boolean ? (SchemaBoolean | SchemaAny) : SchemaAny) | SchemaAny;
 export declare type DiffBase<T> = {
     readonly action: 'add';
     readonly newValue: (T | null);

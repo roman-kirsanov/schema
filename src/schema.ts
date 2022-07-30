@@ -183,12 +183,12 @@ export type SchemaAny = SchemaBase<any> & {
 }
 
 export type Schema<T = any> =
-    T extends Function ? (SchemaFunction | SchemaAny) :
+    (T extends Function ? (SchemaFunction | SchemaAny) :
     T extends any[] ? (SchemaArray<T> | SchemaTuple<T> | SchemaAny) :
     T extends object ? (SchemaObject<T> | SchemaAny) :
     T extends string ? (SchemaString | SchemaAny) :
     T extends number ? (SchemaNumber | SchemaAny) :
-    T extends boolean ? (SchemaBoolean | SchemaAny) : SchemaAny |
+    T extends boolean ? (SchemaBoolean | SchemaAny) : SchemaAny) |
     SchemaAny;
 
 export type DiffBase<T> = {
