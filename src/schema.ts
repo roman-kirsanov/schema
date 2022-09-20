@@ -261,7 +261,7 @@ export type Issue = {
 
 export type ValidateOptions = {
     readonly partial?: boolean;
-    readonly fallback?: true;
+    readonly fallback?: boolean;
 }
 
 export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, options?: ValidateOptions): Issue[] => {
@@ -450,7 +450,7 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 || (options?.partial === true)) {
                     return [];
                 } else {
-                    if (isSet(schema.fallback) && (options?.fallback === true)) {
+                    if (isSet(schema.fallback) && (options?.fallback !== false)) {
                         obj[prop] = schema.fallback;
                         return proc(obj, prop, schema, path);
                     } else {

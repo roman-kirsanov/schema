@@ -136,7 +136,7 @@ export declare type Issue = {
 };
 export declare type ValidateOptions = {
     readonly partial?: boolean;
-    readonly fallback?: true;
+    readonly fallback?: boolean;
 };
 export declare const validate: <T>(value: T | null | undefined, schema: Schema<T>, options?: ValidateOptions | undefined) => Issue[];
 export declare type CompareOptions = {
