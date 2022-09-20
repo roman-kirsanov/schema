@@ -125,6 +125,8 @@ export type SchemaString = SchemaBase<string> & {
     readonly allowEmpty?: boolean;
     readonly minLength?: number;
     readonly maxLength?: number;
+    readonly startsWith?: string;
+    readonly endsWith?: string;
     readonly matches?: RegExp;
 }
 
@@ -278,6 +280,12 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                     }
                     if (isSet(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
                         ret = [ ...ret, { path, message: `string length is greater than ${schema.maxLength}` } ];
+                    }
+                    if (isSet(schema.startsWith) && !obj[prop].startsWith(schema.startsWith)) {
+                        ret = [ ...ret, { path, message: `string does not start "${schema.startsWith}"` } ];
+                    }
+                    if (isSet(schema.endsWith) && !obj[prop].endsWith(schema.endsWith)) {
+                        ret = [ ...ret, { path, message: `string does not end "${schema.endsWith}"` } ];
                     }
                     if (isSet(schema.matches) && !schema.matches.test(obj[prop])) {
                         ret = [ ...ret, { path, message: `string does not match regexp "${schema.matches.toString()}"` } ];

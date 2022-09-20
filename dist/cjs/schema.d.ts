@@ -29,6 +29,8 @@ export declare type SchemaString = SchemaBase<string> & {
     readonly allowEmpty?: boolean;
     readonly minLength?: number;
     readonly maxLength?: number;
+    readonly startsWith?: string;
+    readonly endsWith?: string;
     readonly matches?: RegExp;
 };
 export declare type SchemaNumber = SchemaBase<number> & {
