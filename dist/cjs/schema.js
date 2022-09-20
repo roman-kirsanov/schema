@@ -328,8 +328,7 @@ const validate = (value, schema, options) => {
                     return [];
                 }
                 else {
-                    if ((0, exports.isSet)(schema.fallback)
-                        && ((options === null || options === void 0 ? void 0 : options.fallback) === true)) {
+                    if ((0, exports.isSet)(schema.fallback) && ((options === null || options === void 0 ? void 0 : options.fallback) === true)) {
                         obj[prop] = schema.fallback;
                         return proc(obj, prop, schema, path);
                     }

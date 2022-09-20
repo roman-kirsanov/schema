@@ -450,8 +450,7 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 || (options?.partial === true)) {
                     return [];
                 } else {
-                    if (isSet(schema.fallback)
-                    && (options?.fallback === true)) {
+                    if (isSet(schema.fallback) && (options?.fallback === true)) {
                         obj[prop] = schema.fallback;
                         return proc(obj, prop, schema, path);
                     } else {
