@@ -118,10 +118,10 @@ export const validate = (value, schema, options) => {
                         ret = [...ret, { path, message: `string length is greater than ${schema.maxLength}` }];
                     }
                     if (isSet(schema.startsWith) && !obj[prop].startsWith(schema.startsWith)) {
-                        ret = [...ret, { path, message: `string does not start "${schema.startsWith}"` }];
+                        ret = [...ret, { path, message: `string does not start with "${schema.startsWith}"` }];
                     }
                     if (isSet(schema.endsWith) && !obj[prop].endsWith(schema.endsWith)) {
-                        ret = [...ret, { path, message: `string does not end "${schema.endsWith}"` }];
+                        ret = [...ret, { path, message: `string does not end with "${schema.endsWith}"` }];
                     }
                     if (isSet(schema.matches) && !schema.matches.test(obj[prop])) {
                         ret = [...ret, { path, message: `string does not match regexp "${schema.matches.toString()}"` }];
