@@ -86,7 +86,7 @@ export declare type DiffBase<T> = {
     readonly oldValue: (T | null);
     readonly newValue: (T | null);
 } | {
-    readonly action: 'unset';
+    readonly action: 'delete';
     readonly oldValue: (T | null);
 };
 export declare type DiffString = DiffBase<string> & {

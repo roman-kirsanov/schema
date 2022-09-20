@@ -200,7 +200,7 @@ export type DiffBase<T> = {
     readonly oldValue: (T | null);
     readonly newValue: (T | null);
 } | {
-    readonly action: 'unset';
+    readonly action: 'delete';
     readonly oldValue: (T | null);
 }
 
@@ -495,7 +495,7 @@ export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: Co
                     return <Diff>{
                         type: schema.type,
                         schema: schema,
-                        action: 'unset',
+                        action: 'delete',
                         oldValue: src,
                     };
                 } else {
@@ -537,7 +537,7 @@ export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: Co
                     return {
                         type: 'object',
                         schema: schema,
-                        action: 'unset',
+                        action: 'delete',
                         oldValue: src,
                         props: diffs
                     }
@@ -584,7 +584,7 @@ export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: Co
                     return {
                         type: 'tuple',
                         schema: schema,
-                        action: 'unset',
+                        action: 'delete',
                         oldValue: src,
                         items: diffs
                     }
@@ -621,7 +621,7 @@ export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: Co
                             diffs.push(<Diff>{
                                 type: schema.item.type,
                                 schema: schema.item,
-                                action: 'unset',
+                                action: 'delete',
                                 oldValue: srcItem
                             });
                         }
@@ -690,7 +690,7 @@ export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: Co
                             return <Diff>{
                                 type: schema.type,
                                 schema: schema,
-                                action: 'unset',
+                                action: 'delete',
                                 oldValue: src,
                                 items: diffs
                             }

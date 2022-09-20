@@ -351,7 +351,7 @@ export const compare = (src, dst, schema, options) => {
                     return {
                         type: schema.type,
                         schema: schema,
-                        action: 'unset',
+                        action: 'delete',
                         oldValue: src,
                     };
                 }
@@ -398,7 +398,7 @@ export const compare = (src, dst, schema, options) => {
                     return {
                         type: 'object',
                         schema: schema,
-                        action: 'unset',
+                        action: 'delete',
                         oldValue: src,
                         props: diffs
                     };
@@ -449,7 +449,7 @@ export const compare = (src, dst, schema, options) => {
                     return {
                         type: 'tuple',
                         schema: schema,
-                        action: 'unset',
+                        action: 'delete',
                         oldValue: src,
                         items: diffs
                     };
@@ -490,7 +490,7 @@ export const compare = (src, dst, schema, options) => {
                             diffs.push({
                                 type: schema.item.type,
                                 schema: schema.item,
-                                action: 'unset',
+                                action: 'delete',
                                 oldValue: srcItem
                             });
                         }
@@ -564,7 +564,7 @@ export const compare = (src, dst, schema, options) => {
                             return {
                                 type: schema.type,
                                 schema: schema,
-                                action: 'unset',
+                                action: 'delete',
                                 oldValue: src,
                                 items: diffs
                             };
