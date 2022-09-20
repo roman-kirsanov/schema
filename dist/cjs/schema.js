@@ -203,10 +203,10 @@ const validate = (value, schema, options) => {
                         }
                     }
                     if ((0, exports.isSet)(schema.equal) && !(0, exports.isDeepEqual)(schema.equal, obj[prop])) {
-                        ret = [...ret, { path, message: `value is not equal to expected object` }];
+                        ret = [...ret, { path, message: 'value is not equal to expected object' }];
                     }
                     if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.some(i => (0, exports.isDeepEqual)(i, obj[prop]))) {
-                        ret = [...ret, { path, message: `value is not one of expected objects` }];
+                        ret = [...ret, { path, message: 'value is not one of expected objects' }];
                     }
                     if ((0, exports.isSet)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
