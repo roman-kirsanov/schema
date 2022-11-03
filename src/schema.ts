@@ -742,11 +742,11 @@ export const assert = <T>(value: (T | undefined | null), schema: Schema<T>, opti
     }
 }
 
-export const INTEGER_RGEXP: RegExp = /^-?\d+$/
+export const INTEGER_REGEXP: RegExp = /^-?\d+$/
 export const NUMBER_REGEXP: RegExp = /^-?\d*(\.\d+)?$/
-export const POSITIVE_INTEGER_RGEXP: RegExp = /^\d+$/
+export const POSITIVE_INTEGER_REGEXP: RegExp = /^\d+$/
 export const POSITIVE_NUMBER_REGEXP: RegExp = /^\d*(\.\d+)?$/
-export const NEGATIVE_INTEGER_RGEXP: RegExp = /^-\d+$/
+export const NEGATIVE_INTEGER_REGEXP: RegExp = /^-\d+$/
 export const NEGATIVE_NUMBER_REGEXP: RegExp = /^-\d*(\.\d+)?$/
 export const DATETIME_REGEXP: RegExp = /^[+-]?\d{4}-[01]\d-[0-3]\d(T[0-2]\d:[0-5]\d?(:[0-5]\d(\.\d+)?)?([+-][0-2]\d:[0-5]\d)?Z?)?$/
 export const EMAIL_REGEXP: RegExp = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
