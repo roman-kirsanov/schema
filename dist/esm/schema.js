@@ -614,11 +614,11 @@ export const assert = (value, schema, options) => {
         return value_;
     }
 };
-export const INTEGER_RGEXP = /^-?\d+$/;
+export const INTEGER_REGEXP = /^-?\d+$/;
 export const NUMBER_REGEXP = /^-?\d*(\.\d+)?$/;
-export const POSITIVE_INTEGER_RGEXP = /^\d+$/;
+export const POSITIVE_INTEGER_REGEXP = /^\d+$/;
 export const POSITIVE_NUMBER_REGEXP = /^\d*(\.\d+)?$/;
-export const NEGATIVE_INTEGER_RGEXP = /^-\d+$/;
+export const NEGATIVE_INTEGER_REGEXP = /^-\d+$/;
 export const NEGATIVE_NUMBER_REGEXP = /^-\d*(\.\d+)?$/;
 export const DATETIME_REGEXP = /^[+-]?\d{4}-[01]\d-[0-3]\d(T[0-2]\d:[0-5]\d?(:[0-5]\d(\.\d+)?)?([+-][0-2]\d:[0-5]\d)?Z?)?$/;
 export const EMAIL_REGEXP = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;

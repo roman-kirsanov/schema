@@ -477,7 +477,7 @@ export type CompareOptions = {
     readonly dstPartial?: boolean;
 }
 
-export const compare = <T>(src: any, dst: any, schema: Schema<any>, options?: CompareOptions): (Diff | undefined) => {
+export const compare = (src: any, dst: any, schema: Schema<any>, options?: CompareOptions): (Diff | undefined) => {
     const proc = (src: any, dst: any, schema: Schema<any>): (Diff | undefined) => {
         if ((schema.type === 'string')
         || (schema.type === 'number')

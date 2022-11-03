@@ -145,16 +145,16 @@ export declare type CompareOptions = {
     readonly srcPartial?: boolean;
     readonly dstPartial?: boolean;
 };
-export declare const compare: <T>(src: any, dst: any, schema: Schema<any>, options?: CompareOptions | undefined) => (Diff | undefined);
+export declare const compare: (src: any, dst: any, schema: Schema<any>, options?: CompareOptions | undefined) => (Diff | undefined);
 export declare type AssertOptions = ValidateOptions & {
     readonly description?: string;
 };
 export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions | undefined) => T;
-export declare const INTEGER_RGEXP: RegExp;
+export declare const INTEGER_REGEXP: RegExp;
 export declare const NUMBER_REGEXP: RegExp;
-export declare const POSITIVE_INTEGER_RGEXP: RegExp;
+export declare const POSITIVE_INTEGER_REGEXP: RegExp;
 export declare const POSITIVE_NUMBER_REGEXP: RegExp;
-export declare const NEGATIVE_INTEGER_RGEXP: RegExp;
+export declare const NEGATIVE_INTEGER_REGEXP: RegExp;
 export declare const NEGATIVE_NUMBER_REGEXP: RegExp;
 export declare const DATETIME_REGEXP: RegExp;
 export declare const EMAIL_REGEXP: RegExp;
