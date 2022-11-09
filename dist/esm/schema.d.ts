@@ -140,16 +140,16 @@ export declare type ValidateOptions = {
     readonly partial?: boolean;
     readonly fallback?: boolean;
 };
-export declare const validate: <T>(value: T | null | undefined, schema: Schema<T>, options?: ValidateOptions | undefined) => Issue[];
+export declare const validate: <T>(value: T | null | undefined, schema: Schema<T>, options?: ValidateOptions) => Issue[];
 export declare type CompareOptions = {
     readonly srcPartial?: boolean;
     readonly dstPartial?: boolean;
 };
-export declare const compare: (src: any, dst: any, schema: Schema<any>, options?: CompareOptions | undefined) => (Diff | undefined);
+export declare const compare: (src: any, dst: any, schema: Schema<any>, options?: CompareOptions) => (Diff | undefined);
 export declare type AssertOptions = ValidateOptions & {
     readonly description?: string;
 };
-export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions | undefined) => T;
+export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions) => T;
 export declare const INTEGER_REGEXP: RegExp;
 export declare const NUMBER_REGEXP: RegExp;
 export declare const POSITIVE_INTEGER_REGEXP: RegExp;
