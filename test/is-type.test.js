@@ -71,19 +71,19 @@ module.exports = () => {
     assert(schema.isBool('123') === false);
     assert(schema.isBool({}) === false);
 
-    assert(schema.isSet(null) === false);
-    assert(schema.isSet(undefined) === false);
-    assert(schema.isSet(0) === true);
-    assert(schema.isSet('123') === true);
-    assert(schema.isSet(123) === true);
-    assert(schema.isSet({}) === true);
+    assert(schema.isAssigned(null) === false);
+    assert(schema.isAssigned(undefined) === false);
+    assert(schema.isAssigned(0) === true);
+    assert(schema.isAssigned('123') === true);
+    assert(schema.isAssigned(123) === true);
+    assert(schema.isAssigned({}) === true);
 
-    assert(schema.isNotSet(null) === true);
-    assert(schema.isNotSet(undefined) === true);
-    assert(schema.isNotSet(0) === false);
-    assert(schema.isNotSet('123') === false);
-    assert(schema.isNotSet(123) === false);
-    assert(schema.isNotSet({}) === false);
+    assert(schema.isNotAssigned(null) === true);
+    assert(schema.isNotAssigned(undefined) === true);
+    assert(schema.isNotAssigned(0) === false);
+    assert(schema.isNotAssigned('123') === false);
+    assert(schema.isNotAssigned(123) === false);
+    assert(schema.isNotAssigned({}) === false);
 
     assert(schema.isEmpty(null) === true);
     assert(schema.isEmpty(undefined) === true);
@@ -101,11 +101,11 @@ module.exports = () => {
     assert(schema.isNonEmpty(123) === false);
     assert(schema.isNonEmpty({}) === false);
 
-    assert(schema.ifNotSet(null, '1') === '1');
-    assert(schema.ifNotSet(undefined, 123) === 123);
-    assert(schema.ifNotSet(0, 1) === 0);
-    assert(schema.ifNotSet('123', 123) === '123');
-    assert(schema.ifNotSet(123, '123') === 123);
+    assert(schema.ifNotAssigned(null, '1') === '1');
+    assert(schema.ifNotAssigned(undefined, 123) === 123);
+    assert(schema.ifNotAssigned(0, 1) === 0);
+    assert(schema.ifNotAssigned('123', 123) === '123');
+    assert(schema.ifNotAssigned(123, '123') === 123);
 
     assert(schema.ifEmpty(null, 1) === 1);
     assert(schema.ifEmpty(undefined, '123') === '123');
@@ -139,4 +139,12 @@ module.exports = () => {
     assert(schema.isDeepEqual(OBJ16, OBJ17) === false);
     assert(schema.isDeepEqual(OBJ17, OBJ18) === true);
     assert(schema.isDeepEqual(OBJ18, OBJ19) === false);
+
+    const MAP1 = new Map();
+    const MAP2 = new Map();
+
+    MAP1.set('key', 'value');
+    MAP2.set('key', 'value');
+
+    assert.equal(schema.isDeepEqual(MAP1, MAP2), true);
 }

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotSet = exports.isNonEmpty = exports.isEmpty = exports.isNotSet = exports.isSet = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
+exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotAssigned = exports.isNonEmpty = exports.isEmpty = exports.isNotAssigned = exports.isAssigned = exports.isSet = exports.isMap = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
 const isPrototypeOf = (value, proto) => {
     if (!value || !proto)
         return false;
@@ -31,16 +31,20 @@ const isDate = (value) => (toString.call(value) === '[object Date]');
 exports.isDate = isDate;
 const isBool = (value) => (toString.call(value) === '[object Boolean]');
 exports.isBool = isBool;
-const isSet = (value) => (value !== null && value !== undefined);
+const isMap = (value) => (toString.call(value) === '[object Map]');
+exports.isMap = isMap;
+const isSet = (value) => (toString.call(value) === '[object Set]');
 exports.isSet = isSet;
-const isNotSet = (value) => (value === null || value === undefined);
-exports.isNotSet = isNotSet;
+const isAssigned = (value) => (value !== null && value !== undefined);
+exports.isAssigned = isAssigned;
+const isNotAssigned = (value) => (value === null || value === undefined);
+exports.isNotAssigned = isNotAssigned;
 const isEmpty = (value) => (value === null || value === undefined || value === '');
 exports.isEmpty = isEmpty;
 const isNonEmpty = (value) => ((0, exports.isString)(value) && value !== '');
 exports.isNonEmpty = isNonEmpty;
-const ifNotSet = (value, value2) => (0, exports.isSet)(value) ? value : value2;
-exports.ifNotSet = ifNotSet;
+const ifNotAssigned = (value, value2) => (0, exports.isAssigned)(value) ? value : value2;
+exports.ifNotAssigned = ifNotAssigned;
 const ifEmpty = (value, value2) => (0, exports.isNonEmpty)(value) ? value : value2;
 exports.ifEmpty = ifEmpty;
 const isCyclic = (value) => {
@@ -54,36 +58,31 @@ const isCyclic = (value) => {
     }
 };
 exports.isCyclic = isCyclic;
-const isDeepEqual = (value, value2) => {
-    if (value === value2) {
+const isDeepEqual = (value1, value2) => {
+    if (value1 === value2) {
         return true;
     }
-    if ((0, exports.isCyclic)(value)) {
+    if ((0, exports.isCyclic)(value1)) {
         return false;
     }
     if ((0, exports.isCyclic)(value2)) {
         return false;
     }
-    const proc = (value, value2) => {
-        if (value === value2) {
+    const proc = (value1, value2) => {
+        if (value1 === value2) {
             return true;
         }
-        if ((value === undefined)
-            || (value === null)) {
+        if ((value1 === undefined)
+            || (value1 === null)) {
             return false;
         }
-        else if ((0, exports.isObject)(value)) {
-            if ((0, exports.isObject)(value2)) {
-                const ents = Object.entries(value);
-                const ents2 = Object.entries(value2);
-                if (ents.length === ents2.length) {
-                    for (let i = 0; i < ents.length; i++) {
-                        const [prop, val] = ents[i];
-                        const [prop2, val2] = ents2[i];
-                        if (prop !== prop2) {
-                            return false;
-                        }
-                        if (proc(val, val2) === false) {
+        else if ((0, exports.isSet)(value1)) {
+            if ((0, exports.isSet)(value2)) {
+                const ents1 = [...value1.values()];
+                const ents2 = [...value2.values()];
+                if (ents1.length === ents2.length) {
+                    for (let i = 0; i < ents1.length; i++) {
+                        if (ents1[i] !== ents2[i]) {
                             return false;
                         }
                     }
@@ -97,11 +96,53 @@ const isDeepEqual = (value, value2) => {
                 return false;
             }
         }
-        else if ((0, exports.isArray)(value)) {
+        else if ((0, exports.isMap)(value1) || (0, exports.isObject)(value1)) {
+            const [ents1, ents2, sameType] = (() => {
+                if ((0, exports.isMap)(value1) && (0, exports.isMap)(value2)) {
+                    return [
+                        [...value1.entries()],
+                        [...value2.entries()],
+                        true
+                    ];
+                }
+                else if ((0, exports.isObject)(value1) && (0, exports.isObject)(value2)) {
+                    return [
+                        Object.entries(value1),
+                        Object.entries(value2),
+                        true
+                    ];
+                }
+                else {
+                    return [[], [], false];
+                }
+            })();
+            if (sameType) {
+                if (ents1.length === ents2.length) {
+                    for (let i = 0; i < ents1.length; i++) {
+                        const [prop1, val1] = ents1[i];
+                        const [prop2, val2] = ents2[i];
+                        if (prop1 !== prop2) {
+                            return false;
+                        }
+                        if (proc(val1, val2) === false) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                return false;
+            }
+        }
+        else if ((0, exports.isArray)(value1)) {
             if ((0, exports.isArray)(value2)) {
-                if (value.length === value2.length) {
-                    for (let i = 0; i < value.length; i++) {
-                        if (proc(value[i], value2[i]) === false) {
+                if (value1.length === value2.length) {
+                    for (let i = 0; i < value1.length; i++) {
+                        if (proc(value1[i], value2[i]) === false) {
                             return false;
                         }
                     }
@@ -116,10 +157,10 @@ const isDeepEqual = (value, value2) => {
             }
         }
         else {
-            return (value === value2);
+            return (value1 === value2);
         }
     };
-    return proc(value, value2);
+    return proc(value1, value2);
 };
 exports.isDeepEqual = isDeepEqual;
 const validate = (value, schema, options) => {
@@ -132,28 +173,28 @@ const validate = (value, schema, options) => {
                     if ((schema.allowEmpty !== true) && (obj[prop] === '')) {
                         ret = [...ret, { path, message: 'empty string is not allowed' }];
                     }
-                    if ((0, exports.isSet)(schema.minLength) && (obj[prop].length < schema.minLength)) {
+                    if ((0, exports.isAssigned)(schema.minLength) && (obj[prop].length < schema.minLength)) {
                         ret = [...ret, { path, message: `string length is less than ${schema.minLength}` }];
                     }
-                    if ((0, exports.isSet)(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
+                    if ((0, exports.isAssigned)(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
                         ret = [...ret, { path, message: `string length is greater than ${schema.maxLength}` }];
                     }
-                    if ((0, exports.isSet)(schema.startsWith) && !obj[prop].startsWith(schema.startsWith)) {
+                    if ((0, exports.isAssigned)(schema.startsWith) && !obj[prop].startsWith(schema.startsWith)) {
                         ret = [...ret, { path, message: `string does not start with "${schema.startsWith}"` }];
                     }
-                    if ((0, exports.isSet)(schema.endsWith) && !obj[prop].endsWith(schema.endsWith)) {
+                    if ((0, exports.isAssigned)(schema.endsWith) && !obj[prop].endsWith(schema.endsWith)) {
                         ret = [...ret, { path, message: `string does not end with "${schema.endsWith}"` }];
                     }
-                    if ((0, exports.isSet)(schema.matches) && !schema.matches.test(obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.matches) && !schema.matches.test(obj[prop])) {
                         ret = [...ret, { path, message: `string does not match regexp "${schema.matches.toString()}"` }];
                     }
-                    if ((0, exports.isSet)(schema.equal) && (schema.equal !== obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [...ret, { path, message: `value is not equal to ${schema.equal}` }];
                     }
-                    if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` }];
                     }
-                    if ((0, exports.isSet)(schema.validate)) {
+                    if ((0, exports.isAssigned)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                     }
                 }
@@ -165,19 +206,19 @@ const validate = (value, schema, options) => {
                 const name = ((schema.type === 'number') ? 'a number' : 'an integer');
                 const isType = ((schema.type === 'number') ? exports.isNumber : exports.isInteger);
                 if (isType(obj[prop])) {
-                    if ((0, exports.isSet)(schema.minValue) && (obj[prop] < schema.minValue)) {
+                    if ((0, exports.isAssigned)(schema.minValue) && (obj[prop] < schema.minValue)) {
                         ret = [...ret, { path, message: `value is less than ${schema.minValue}` }];
                     }
-                    if ((0, exports.isSet)(schema.maxValue) && (obj[prop] > schema.maxValue)) {
+                    if ((0, exports.isAssigned)(schema.maxValue) && (obj[prop] > schema.maxValue)) {
                         ret = [...ret, { path, message: `value is greater than ${schema.maxValue}` }];
                     }
-                    if ((0, exports.isSet)(schema.equal) && (schema.equal !== obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [...ret, { path, message: `value is not equal to ${schema.equal}` }];
                     }
-                    if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` }];
                     }
-                    if ((0, exports.isSet)(schema.validate)) {
+                    if ((0, exports.isAssigned)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                     }
                 }
@@ -189,7 +230,7 @@ const validate = (value, schema, options) => {
                 if ((0, exports.isObject)(obj[prop])) {
                     const objProps = Object.entries(obj[prop]);
                     const schProps = Object.entries((_a = schema.props) !== null && _a !== void 0 ? _a : {});
-                    const arbitrary = (_b = schema.arbitrary) !== null && _b !== void 0 ? _b : ((0, exports.isSet)(schema.props) === false);
+                    const arbitrary = (_b = schema.arbitrary) !== null && _b !== void 0 ? _b : ((0, exports.isAssigned)(schema.props) === false);
                     for (const [propName, propSchema] of schProps) {
                         ret = [...ret, ...proc(obj[prop], propName, propSchema, `${path}.${propName}`)];
                     }
@@ -203,18 +244,18 @@ const validate = (value, schema, options) => {
                             }
                         }
                     }
-                    if ((0, exports.isSet)(schema.entry)) {
+                    if ((0, exports.isAssigned)(schema.entry)) {
                         for (const [propName] of objProps) {
                             ret = [...ret, ...proc(obj[prop], propName, schema.entry, `${path}.${propName}`)];
                         }
                     }
-                    if ((0, exports.isSet)(schema.equal) && !(0, exports.isDeepEqual)(schema.equal, obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.equal) && !(0, exports.isDeepEqual)(schema.equal, obj[prop])) {
                         ret = [...ret, { path, message: 'value is not equal to expected object' }];
                     }
-                    if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.some(i => (0, exports.isDeepEqual)(i, obj[prop]))) {
+                    if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.some(i => (0, exports.isDeepEqual)(i, obj[prop]))) {
                         ret = [...ret, { path, message: 'value is not one of expected objects' }];
                     }
-                    if ((0, exports.isSet)(schema.validate)) {
+                    if ((0, exports.isAssigned)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                     }
                 }
@@ -224,10 +265,10 @@ const validate = (value, schema, options) => {
             }
             else if (schema.type === 'tuple') {
                 if ((0, exports.isArray)(obj[prop])) {
-                    if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.some(i => (0, exports.isDeepEqual)(i, obj[prop]))) {
+                    if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.some(i => (0, exports.isDeepEqual)(i, obj[prop]))) {
                         ret = [...ret, { path, message: `value is not one of expected tuples` }];
                     }
-                    if ((0, exports.isSet)(schema.equal) && !(0, exports.isDeepEqual)(schema.equal, obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.equal) && !(0, exports.isDeepEqual)(schema.equal, obj[prop])) {
                         ret = [...ret, { path, message: `value is not equal to expected tuple` }];
                     }
                     if (obj[prop].length !== schema.items.length) {
@@ -236,7 +277,7 @@ const validate = (value, schema, options) => {
                     for (let i = 0; i < schema.items.length; i++) {
                         ret = [...ret, ...proc(obj[prop], i, schema.items[i], `${path}[${i}]`)];
                     }
-                    if ((0, exports.isSet)(schema.validate)) {
+                    if ((0, exports.isAssigned)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                     }
                 }
@@ -249,24 +290,24 @@ const validate = (value, schema, options) => {
                     if ((schema.allowEmpty !== true) && (obj[prop].length === 0)) {
                         ret = [...ret, { path, message: 'empty array is not allowed' }];
                     }
-                    if ((0, exports.isSet)(schema.minLength) && (obj[prop].length < schema.minLength)) {
+                    if ((0, exports.isAssigned)(schema.minLength) && (obj[prop].length < schema.minLength)) {
                         ret = [...ret, { path, message: `array length is less than ${schema.minLength}` }];
                     }
-                    if ((0, exports.isSet)(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
+                    if ((0, exports.isAssigned)(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
                         ret = [...ret, { path, message: `array length is greater than ${schema.maxLength}` }];
                     }
-                    if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.some(i => (0, exports.isDeepEqual)(i, obj[prop]))) {
+                    if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.some(i => (0, exports.isDeepEqual)(i, obj[prop]))) {
                         ret = [...ret, { path, message: `value is not one of expected arrays` }];
                     }
-                    if ((0, exports.isSet)(schema.equal) && !(0, exports.isDeepEqual)(schema.equal, obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.equal) && !(0, exports.isDeepEqual)(schema.equal, obj[prop])) {
                         ret = [...ret, { path, message: `value is not equal to expected array` }];
                     }
-                    if ((0, exports.isSet)(schema.item)) {
+                    if ((0, exports.isAssigned)(schema.item)) {
                         for (let i = 0; i < obj[prop].length; i++) {
                             ret = [...ret, ...proc(obj[prop], i, schema.item, `${path}[${i}]`)];
                         }
                     }
-                    if ((0, exports.isSet)(schema.validate)) {
+                    if ((0, exports.isAssigned)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                     }
                 }
@@ -276,13 +317,13 @@ const validate = (value, schema, options) => {
             }
             else if (schema.type === 'boolean') {
                 if ((0, exports.isBool)(obj[prop])) {
-                    if ((0, exports.isSet)(schema.equal) && (schema.equal !== obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [...ret, { path, message: `value is not equal to ${schema.equal}` }];
                     }
-                    if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` }];
                     }
-                    if ((0, exports.isSet)(schema.validate)) {
+                    if ((0, exports.isAssigned)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                     }
                 }
@@ -292,13 +333,13 @@ const validate = (value, schema, options) => {
             }
             else if (schema.type === 'function') {
                 if ((0, exports.isFunction)(obj[prop])) {
-                    if ((0, exports.isSet)(schema.equal) && (schema.equal !== obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [...ret, { path, message: `value is not equal to ${schema.equal}` }];
                     }
-                    if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` }];
                     }
-                    if ((0, exports.isSet)(schema.validate)) {
+                    if ((0, exports.isAssigned)(schema.validate)) {
                         ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                     }
                 }
@@ -307,13 +348,13 @@ const validate = (value, schema, options) => {
                 }
             }
             else if (schema.type === 'any') {
-                if ((0, exports.isSet)(schema.equal) && (schema.equal !== obj[prop])) {
+                if ((0, exports.isAssigned)(schema.equal) && (schema.equal !== obj[prop])) {
                     ret = [...ret, { path, message: `value is not equal to ${schema.equal}` }];
                 }
-                if ((0, exports.isSet)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                if ((0, exports.isAssigned)(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                     ret = [...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` }];
                 }
-                if ((0, exports.isSet)(schema.validate)) {
+                if ((0, exports.isAssigned)(schema.validate)) {
                     ret = [...ret, ...schema.validate(obj[prop]).map(i => (Object.assign(Object.assign({}, i), { path: ((0, exports.isNonEmpty)(path) ? `${path}.${i.path}` : i.path) })))];
                 }
             }
@@ -334,7 +375,7 @@ const validate = (value, schema, options) => {
                     return [];
                 }
                 else {
-                    if ((0, exports.isSet)(schema.fallback) && ((options === null || options === void 0 ? void 0 : options.fallback) !== false)) {
+                    if ((0, exports.isAssigned)(schema.fallback) && ((options === null || options === void 0 ? void 0 : options.fallback) !== false)) {
                         obj[prop] = schema.fallback;
                         return proc(obj, prop, schema, path);
                     }
@@ -403,7 +444,7 @@ const compare = (src, dst, schema, options) => {
             const dstObj = (dst !== null && dst !== void 0 ? dst : {});
             for (const [propName, propSchema] of Object.entries((_a = schema.props) !== null && _a !== void 0 ? _a : {})) {
                 const diff = proc(srcObj[propName], dstObj[propName], propSchema);
-                if ((0, exports.isSet)(diff)) {
+                if ((0, exports.isAssigned)(diff)) {
                     diffs[propName] = diff;
                 }
             }
@@ -506,7 +547,7 @@ const compare = (src, dst, schema, options) => {
             const diffs = [];
             const srcArr = (src !== null && src !== void 0 ? src : []);
             const dstArr = (dst !== null && dst !== void 0 ? dst : []);
-            if ((0, exports.isSet)(schema.item)) {
+            if ((0, exports.isAssigned)(schema.item)) {
                 if ((schema.item.type === 'string')
                     || (schema.item.type === 'number')
                     || (schema.item.type === 'integer')
@@ -535,19 +576,19 @@ const compare = (src, dst, schema, options) => {
                     }
                 }
                 else if (schema.item.type === 'object') {
-                    if ((0, exports.isSet)(schema.key)) {
+                    if ((0, exports.isAssigned)(schema.key)) {
                         const __key = schema.key;
                         for (const srcItem of srcArr) {
                             const dstItem = dstArr.find((i) => i[__key] === srcItem[__key]);
                             const diff = proc(srcItem, dstItem, schema.item);
-                            if ((0, exports.isSet)(diff)) {
+                            if ((0, exports.isAssigned)(diff)) {
                                 diffs.push(diff);
                             }
                         }
                         for (const dstItem of dstArr) {
                             if (!srcArr.some((i) => i[__key] === dstItem[__key])) {
                                 const diff = proc(undefined, dstItem, schema.item);
-                                if ((0, exports.isSet)(diff)) {
+                                if ((0, exports.isAssigned)(diff)) {
                                     diffs.push(diff);
                                 }
                             }
@@ -557,7 +598,7 @@ const compare = (src, dst, schema, options) => {
                         const max = Math.max(srcArr.length, dstArr.length);
                         for (let i = 0; i < max; i++) {
                             const diff = proc(srcArr[i], dstArr[i], schema.item);
-                            if ((0, exports.isSet)(diff)) {
+                            if ((0, exports.isAssigned)(diff)) {
                                 diffs.push(diff);
                             }
                         }
@@ -567,7 +608,7 @@ const compare = (src, dst, schema, options) => {
                     const max = Math.max(srcArr.length, dstArr.length);
                     for (let i = 0; i < max; i++) {
                         const diff = proc(srcArr[i], dstArr[i], schema.item);
-                        if ((0, exports.isSet)(diff)) {
+                        if ((0, exports.isAssigned)(diff)) {
                             diffs.push(diff);
                         }
                     }

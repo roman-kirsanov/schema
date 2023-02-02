@@ -28,15 +28,19 @@ export const isDate = (value: any): value is Date => (toString.call(value) === '
 
 export const isBool = (value: any): value is boolean => (toString.call(value) === '[object Boolean]');
 
-export const isSet = <T>(value: T): value is NonNullable<T> => (value !== null && value !== undefined);
+export const isMap = (value: any): value is Map<any, any> => (toString.call(value) === '[object Map]');
 
-export const isNotSet = (value: any): value is (null | undefined) => (value === null || value === undefined);
+export const isSet = (value: any): value is Set<any> => (toString.call(value) === '[object Set]');
+
+export const isAssigned = <T>(value: T): value is NonNullable<T> => (value !== null && value !== undefined);
+
+export const isNotAssigned = (value: any): value is (null | undefined) => (value === null || value === undefined);
 
 export const isEmpty = (value: any): value is (null | undefined | '') => (value === null || value === undefined || value === '');
 
 export const isNonEmpty = (value: any): value is string => (isString(value) && value !== '');
 
-export const ifNotSet = <T>(value: T, value2: NonNullable<T>): NonNullable<T> => isSet(value) ? value : value2;
+export const ifNotAssigned = <T>(value: T, value2: NonNullable<T>): NonNullable<T> => isAssigned(value) ? value : value2;
 
 export const ifEmpty = (value: any, value2: string): string => isNonEmpty(value) ? value : value2;
 
@@ -50,35 +54,30 @@ export const isCyclic = (value: any): boolean => {
     }
 }
 
-export const isDeepEqual = (value: any, value2: any): boolean => {
-    if (value === value2) {
+export const isDeepEqual = (value1: any, value2: any): boolean => {
+    if (value1 === value2) {
         return true;
     }
-    if (isCyclic(value)) {
+    if (isCyclic(value1)) {
         return false;
     }
     if (isCyclic(value2)) {
         return false;
     }
-    const proc = (value: any, value2: any) => {
-        if (value === value2) {
+    const proc = (value1: any, value2: any) => {
+        if (value1 === value2) {
             return true;
         }
-        if ((value === undefined)
-        || (value === null)) {
+        if ((value1 === undefined)
+        || (value1 === null)) {
             return false;
-        } else if (isObject(value)) {
-            if (isObject(value2)) {
-                const ents = Object.entries(value);
-                const ents2 = Object.entries(value2);
-                if (ents.length === ents2.length) {
-                    for (let i = 0; i < ents.length; i++) {
-                        const [ prop, val ] = ents[i];
-                        const [ prop2, val2 ] = ents2[i];
-                        if (prop !== prop2) {
-                            return false;
-                        }
-                        if (proc(val, val2) === false) {
+        } else if (isSet(value1)) {
+            if (isSet(value2)) {
+                const ents1 = [ ...value1.values() ];
+                const ents2 = [ ...value2.values() ];
+                if (ents1.length === ents2.length) {
+                    for (let i = 0; i < ents1.length; i++) {
+                        if (ents1[i] !== ents2[i]) {
                             return false;
                         }
                     }
@@ -89,11 +88,48 @@ export const isDeepEqual = (value: any, value2: any): boolean => {
             } else {
                 return false;
             }
-        } else if (isArray(value)) {
+        } else if (isMap(value1) || isObject(value1)) {
+            const [ ents1, ents2, sameType ] = (() => {
+                if (isMap(value1) && isMap(value2)) {
+                    return [
+                        [ ...value1.entries() ],
+                        [ ...value2.entries() ],
+                        true
+                    ];
+                } else if (isObject(value1) && isObject(value2)) {
+                    return [
+                        Object.entries(value1),
+                        Object.entries(value2),
+                        true
+                    ];
+                } else {
+                    return [ [], [], false ];
+                }
+            })();
+            if (sameType) {
+                if (ents1.length === ents2.length) {
+                    for (let i = 0; i < ents1.length; i++) {
+                        const [ prop1, val1 ] = ents1[i];
+                        const [ prop2, val2 ] = ents2[i];
+                        if (prop1 !== prop2) {
+                            return false;
+                        }
+                        if (proc(val1, val2) === false) {
+                            return false;
+                        }
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        } else if (isArray(value1)) {
             if (isArray(value2)) {
-                if (value.length === value2.length) {
-                    for (let i = 0; i < value.length; i++) {
-                        if (proc(value[i], value2[i]) === false) {
+                if (value1.length === value2.length) {
+                    for (let i = 0; i < value1.length; i++) {
+                        if (proc(value1[i], value2[i]) === false) {
                             return false;
                         }
                     }
@@ -105,10 +141,10 @@ export const isDeepEqual = (value: any, value2: any): boolean => {
                 return false;
             }
         } else {
-            return (value === value2);
+            return (value1 === value2);
         }
     }
-    return proc(value, value2);
+    return proc(value1, value2);
 }
 
 export type SchemaBase<T> = {
@@ -275,28 +311,28 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                     if ((schema.allowEmpty !== true) && (obj[prop] === '')) {
                         ret = [ ...ret, { path, message: 'empty string is not allowed' } ];
                     }
-                    if (isSet(schema.minLength) && (obj[prop].length < schema.minLength)) {
+                    if (isAssigned(schema.minLength) && (obj[prop].length < schema.minLength)) {
                         ret = [ ...ret, { path, message: `string length is less than ${schema.minLength}` } ];
                     }
-                    if (isSet(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
+                    if (isAssigned(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
                         ret = [ ...ret, { path, message: `string length is greater than ${schema.maxLength}` } ];
                     }
-                    if (isSet(schema.startsWith) && !obj[prop].startsWith(schema.startsWith)) {
+                    if (isAssigned(schema.startsWith) && !obj[prop].startsWith(schema.startsWith)) {
                         ret = [ ...ret, { path, message: `string does not start with "${schema.startsWith}"` } ];
                     }
-                    if (isSet(schema.endsWith) && !obj[prop].endsWith(schema.endsWith)) {
+                    if (isAssigned(schema.endsWith) && !obj[prop].endsWith(schema.endsWith)) {
                         ret = [ ...ret, { path, message: `string does not end with "${schema.endsWith}"` } ];
                     }
-                    if (isSet(schema.matches) && !schema.matches.test(obj[prop])) {
+                    if (isAssigned(schema.matches) && !schema.matches.test(obj[prop])) {
                         ret = [ ...ret, { path, message: `string does not match regexp "${schema.matches.toString()}"` } ];
                     }
-                    if (isSet(schema.equal) && (schema.equal !== obj[prop])) {
+                    if (isAssigned(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not equal to ${schema.equal}` } ];
                     }
-                    if (isSet(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if (isAssigned(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` } ];
                     }
-                    if (isSet(schema.validate)) {
+                    if (isAssigned(schema.validate)) {
                         ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                     }
                 } else {
@@ -306,19 +342,19 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 const name = ((schema.type === 'number') ? 'a number' : 'an integer');
                 const isType = ((schema.type === 'number') ? isNumber : isInteger);
                 if (isType(obj[prop])) {
-                    if (isSet(schema.minValue) && (obj[prop] < schema.minValue)) {
+                    if (isAssigned(schema.minValue) && (obj[prop] < schema.minValue)) {
                         ret = [ ...ret, { path, message: `value is less than ${schema.minValue}` } ];
                     }
-                    if (isSet(schema.maxValue) && (obj[prop] > schema.maxValue)) {
+                    if (isAssigned(schema.maxValue) && (obj[prop] > schema.maxValue)) {
                         ret = [ ...ret, { path, message: `value is greater than ${schema.maxValue}` } ];
                     }
-                    if (isSet(schema.equal) && (schema.equal !== obj[prop])) {
+                    if (isAssigned(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not equal to ${schema.equal}` } ];
                     }
-                    if (isSet(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if (isAssigned(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` } ];
                     }
-                    if (isSet(schema.validate)) {
+                    if (isAssigned(schema.validate)) {
                         ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                     }
                 } else {
@@ -328,7 +364,7 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 if (isObject(obj[prop])) {
                     const objProps = Object.entries(obj[prop]);
                     const schProps = Object.entries(schema.props ?? {});
-                    const arbitrary = schema.arbitrary ?? (isSet(schema.props) === false);
+                    const arbitrary = schema.arbitrary ?? (isAssigned(schema.props) === false);
                     for (const [ propName, propSchema ] of schProps) {
                         ret = [ ...ret, ...proc(obj[prop], propName, (propSchema as any), `${path}.${propName}`) ];
                     }
@@ -341,18 +377,18 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                             }
                         }
                     }
-                    if (isSet(schema.entry)) {
+                    if (isAssigned(schema.entry)) {
                         for (const [ propName ] of objProps) {
                             ret = [ ...ret, ...proc(obj[prop], propName, (schema.entry as any), `${path}.${propName}`) ];
                         }
                     }
-                    if (isSet(schema.equal) && !isDeepEqual(schema.equal, obj[prop])) {
+                    if (isAssigned(schema.equal) && !isDeepEqual(schema.equal, obj[prop])) {
                         ret = [ ...ret, { path, message: 'value is not equal to expected object' } ];
                     }
-                    if (isSet(schema.oneOf) && !schema.oneOf.some(i => isDeepEqual(i, obj[prop]))) {
+                    if (isAssigned(schema.oneOf) && !schema.oneOf.some(i => isDeepEqual(i, obj[prop]))) {
                         ret = [ ...ret, { path, message: 'value is not one of expected objects' } ];
                     }
-                    if (isSet(schema.validate)) {
+                    if (isAssigned(schema.validate)) {
                         ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                     }
                 } else {
@@ -360,10 +396,10 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 }
             } else if (schema.type === 'tuple') {
                 if (isArray(obj[prop])) {
-                    if (isSet(schema.oneOf) && !schema.oneOf.some(i => isDeepEqual(i, obj[prop]))) {
+                    if (isAssigned(schema.oneOf) && !schema.oneOf.some(i => isDeepEqual(i, obj[prop]))) {
                         ret = [ ...ret, { path, message: `value is not one of expected tuples` } ];
                     }
-                    if (isSet(schema.equal) && !isDeepEqual(schema.equal, obj[prop])) {
+                    if (isAssigned(schema.equal) && !isDeepEqual(schema.equal, obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not equal to expected tuple` } ];
                     }
                     if (obj[prop].length !== schema.items.length) {
@@ -372,7 +408,7 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                     for (let i = 0; i < schema.items.length; i++) {
                         ret = [ ...ret, ...proc(obj[prop], i, schema.items[i], `${path}[${i}]`) ];
                     }
-                    if (isSet(schema.validate)) {
+                    if (isAssigned(schema.validate)) {
                         ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                     }
                 } else {
@@ -383,24 +419,24 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                     if ((schema.allowEmpty !== true) && (obj[prop].length === 0)) {
                         ret = [ ...ret, { path, message: 'empty array is not allowed' } ];
                     }
-                    if (isSet(schema.minLength) && (obj[prop].length < schema.minLength)) {
+                    if (isAssigned(schema.minLength) && (obj[prop].length < schema.minLength)) {
                         ret = [ ...ret, { path, message: `array length is less than ${schema.minLength}` } ];
                     }
-                    if (isSet(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
+                    if (isAssigned(schema.maxLength) && (obj[prop].length > schema.maxLength)) {
                         ret = [ ...ret, { path, message: `array length is greater than ${schema.maxLength}` } ];
                     }
-                    if (isSet(schema.oneOf) && !schema.oneOf.some(i => isDeepEqual(i, obj[prop])) ) {
+                    if (isAssigned(schema.oneOf) && !schema.oneOf.some(i => isDeepEqual(i, obj[prop])) ) {
                         ret = [ ...ret, { path, message: `value is not one of expected arrays` } ];
                     }
-                    if (isSet(schema.equal) && !isDeepEqual(schema.equal, obj[prop])) {
+                    if (isAssigned(schema.equal) && !isDeepEqual(schema.equal, obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not equal to expected array` } ];
                     }
-                    if (isSet(schema.item)) {
+                    if (isAssigned(schema.item)) {
                         for (let i = 0; i < obj[prop].length; i++) {
                             ret = [ ...ret, ...proc(obj[prop], i, schema.item, `${path}[${i}]`) ]
                         }
                     }
-                    if (isSet(schema.validate)) {
+                    if (isAssigned(schema.validate)) {
                         ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                     }
                 } else {
@@ -408,13 +444,13 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 }
             } else if (schema.type === 'boolean') {
                 if (isBool(obj[prop])) {
-                    if (isSet(schema.equal) && (schema.equal !== obj[prop])) {
+                    if (isAssigned(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not equal to ${schema.equal}` } ];
                     }
-                    if (isSet(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if (isAssigned(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` } ];
                     }
-                    if (isSet(schema.validate)) {
+                    if (isAssigned(schema.validate)) {
                         ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                     }
                 } else {
@@ -422,26 +458,26 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 }
             } else if (schema.type === 'function') {
                 if (isFunction(obj[prop])) {
-                    if (isSet(schema.equal) && (schema.equal !== obj[prop])) {
+                    if (isAssigned(schema.equal) && (schema.equal !== obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not equal to ${schema.equal}` } ];
                     }
-                    if (isSet(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                    if (isAssigned(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                         ret = [ ...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` } ];
                     }
-                    if (isSet(schema.validate)) {
+                    if (isAssigned(schema.validate)) {
                         ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                     }
                 } else {
                     ret = [{ path, message: 'value is not a function' }];
                 }
             } else if (schema.type === 'any') {
-                if (isSet(schema.equal) && (schema.equal !== obj[prop])) {
+                if (isAssigned(schema.equal) && (schema.equal !== obj[prop])) {
                     ret = [ ...ret, { path, message: `value is not equal to ${schema.equal}` } ];
                 }
-                if (isSet(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
+                if (isAssigned(schema.oneOf) && !schema.oneOf.includes(obj[prop])) {
                     ret = [ ...ret, { path, message: `value is not one of [${schema.oneOf.join(', ')}]` } ];
                 }
-                if (isSet(schema.validate)) {
+                if (isAssigned(schema.validate)) {
                     ret = [ ...ret, ...schema.validate(obj[prop]).map(i => ({ ...i, path: (isNonEmpty(path) ? `${path}.${i.path}` : i.path) })) ];
                 }
             }
@@ -458,7 +494,7 @@ export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, op
                 || (options?.partial === true)) {
                     return [];
                 } else {
-                    if (isSet(schema.fallback) && (options?.fallback !== false)) {
+                    if (isAssigned(schema.fallback) && (options?.fallback !== false)) {
                         obj[prop] = schema.fallback;
                         return proc(obj, prop, schema, path);
                     } else {
@@ -524,7 +560,7 @@ export const compare = (src: any, dst: any, schema: Schema<any>, options?: Compa
             const dstObj = (dst ?? {});
             for (const [ propName, propSchema ] of Object.entries(schema.props ?? {})) {
                 const diff = proc(srcObj[propName], dstObj[propName], propSchema);
-                if (isSet(diff)) {
+                if (isAssigned(diff)) {
                     diffs[propName] = diff;
                 }
             }
@@ -617,7 +653,7 @@ export const compare = (src: any, dst: any, schema: Schema<any>, options?: Compa
             const diffs: Diff[] = [];
             const srcArr = (src ?? []);
             const dstArr = (dst ?? []);
-            if (isSet(schema.item)) {
+            if (isAssigned(schema.item)) {
                 if ((schema.item.type === 'string')
                 || (schema.item.type === 'number')
                 || (schema.item.type === 'integer')
@@ -645,19 +681,19 @@ export const compare = (src: any, dst: any, schema: Schema<any>, options?: Compa
                         }
                     }
                 } else if (schema.item.type === 'object') {
-                    if (isSet(schema.key)) {
+                    if (isAssigned(schema.key)) {
                         const __key = schema.key;
                         for (const srcItem of srcArr) {
                             const dstItem = dstArr.find((i: any) => i[__key] === srcItem[__key]);
                             const diff = proc(srcItem, dstItem, schema.item);
-                            if (isSet(diff)) {
+                            if (isAssigned(diff)) {
                                 diffs.push(diff);
                             }
                         }
                         for (const dstItem of dstArr) {
                             if (!srcArr.some((i: any) => i[__key] === dstItem[__key])) {
                                 const diff = proc(undefined, dstItem, schema.item);
-                                if (isSet(diff)) {
+                                if (isAssigned(diff)) {
                                     diffs.push(diff);
                                 }
                             }
@@ -666,7 +702,7 @@ export const compare = (src: any, dst: any, schema: Schema<any>, options?: Compa
                         const max = Math.max(srcArr.length, dstArr.length);
                         for (let i = 0; i < max; i++) {
                             const diff = proc(srcArr[i], dstArr[i], schema.item);
-                            if (isSet(diff)) {
+                            if (isAssigned(diff)) {
                                 diffs.push(diff);
                             }
                         }
@@ -675,7 +711,7 @@ export const compare = (src: any, dst: any, schema: Schema<any>, options?: Compa
                     const max = Math.max(srcArr.length, dstArr.length);
                     for (let i = 0; i < max; i++) {
                         const diff = proc(srcArr[i], dstArr[i], schema.item);
-                        if (isSet(diff)) {
+                        if (isAssigned(diff)) {
                             diffs.push(diff);
                         }
                     }
