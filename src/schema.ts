@@ -230,6 +230,8 @@ export type Schema<T = any> = (
     SchemaAny
 ) | SchemaAny;
 
+export type SchemaDataType<T> = T extends Schema<infer TT> ? TT : unknown;
+
 export type DiffBase<T> = {
     readonly action: 'add';
     readonly newValue: (T | null);
