@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotAssigned = exports.isNonEmpty = exports.isEmpty = exports.isNotAssigned = exports.isAssigned = exports.isSet = exports.isMap = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
+exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.patch = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotAssigned = exports.isNonEmpty = exports.isEmpty = exports.isNotAssigned = exports.isAssigned = exports.isSet = exports.isMap = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
 const isPrototypeOf = (value, proto) => {
     if (!value || !proto)
         return false;
@@ -679,6 +679,70 @@ const assert = (value, schema, options) => {
     }
 };
 exports.assert = assert;
+const patch = (target, patch, schema, options) => {
+    try {
+        if ((0, exports.isObject)(target) === false) {
+            throw new Error('Target must be an object');
+        }
+        if ((0, exports.isObject)(patch) === false) {
+            throw new Error('Patch must be an object');
+        }
+        const clonedTarget = (() => {
+            try {
+                return JSON.parse(JSON.stringify(target));
+            }
+            catch (e) {
+                throw new Error(`Failed to clone target: ${e.message}`);
+            }
+        })();
+        const targetValid = (() => {
+            try {
+                return (0, exports.assert)(clonedTarget, schema, options);
+            }
+            catch (e) {
+                throw new Error(`Failed to validate target object: ${e.message}`);
+            }
+        })();
+        const patchValid = (() => {
+            try {
+                return (0, exports.assert)(patch, schema, Object.assign(Object.assign({}, options), { partial: true }));
+            }
+            catch (e) {
+                throw new Error(`Failed to validate patch object: ${e.message}`);
+            }
+        })();
+        const proc = (target, patch) => {
+            for (const [key, value] of Object.entries(patch)) {
+                if ((0, exports.isObject)(value)) {
+                    if ((0, exports.isNotAssigned)(target[key])) {
+                        target[key] = {};
+                        proc(target[key], value);
+                    }
+                    else if ((0, exports.isObject)(target[key])) {
+                        proc(target[key], value);
+                    }
+                    else {
+                        throw new Error('Object shape mismatch');
+                    }
+                }
+                else {
+                    target[key] = value;
+                }
+            }
+        };
+        proc(targetValid, patchValid);
+        try {
+            return (0, exports.assert)(targetValid, schema, options);
+        }
+        catch (e) {
+            throw new Error(`Failed to validate resulting object: ${e.message}`);
+        }
+    }
+    catch (e) {
+        throw new Error(`Failed to patch object: ${e.message}`);
+    }
+};
+exports.patch = patch;
 exports.INTEGER_REGEXP = /^-?\d+$/;
 exports.NUMBER_REGEXP = /^-?\d*(\.\d+)?$/;
 exports.POSITIVE_INTEGER_REGEXP = /^\d+$/;

@@ -32,6 +32,8 @@ export const isMap = (value: any): value is Map<any, any> => (toString.call(valu
 
 export const isSet = (value: any): value is Set<any> => (toString.call(value) === '[object Set]');
 
+export const isPrimitive = (value: any): value is string | number | boolean => (isString(value) || isNumber(value) || isBool(value));
+
 export const isAssigned = <T>(value: T): value is NonNullable<T> => (value !== null && value !== undefined);
 
 export const isNotAssigned = (value: any): value is (null | undefined) => (value === null || value === undefined);
@@ -147,6 +149,10 @@ export const isDeepEqual = (value1: any, value2: any): boolean => {
     return proc(value1, value2);
 }
 
+export type DeepPartial<T> = {
+    [K in keyof T]?: DeepPartial<T[K]>;
+}
+
 export type SchemaBase<T> = {
     readonly optional?: boolean;
     readonly nullable?: boolean;
@@ -220,7 +226,7 @@ export type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 }
 
-export type Schema<T = any> = (
+export type Schema<T> = (
     T extends Function ? SchemaFunction :
     T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) :
     T extends object ? SchemaObject<T> :
@@ -228,7 +234,14 @@ export type Schema<T = any> = (
     T extends number ? SchemaNumber :
     T extends boolean ? SchemaBoolean :
     SchemaAny
-) | SchemaAny;
+) | AnySchema;
+
+export type AnySchema = (
+    SchemaFunction | SchemaArray<any> |
+    SchemaTuple<any> | SchemaObject<any> |
+    SchemaString | SchemaNumber |
+    SchemaBoolean | SchemaAny
+);
 
 export type SchemaDataType<T> = T extends Schema<infer TT> ? TT : unknown;
 
@@ -515,8 +528,8 @@ export type CompareOptions = {
     readonly dstPartial?: boolean;
 }
 
-export const compare = (src: any, dst: any, schema: Schema<any>, options?: CompareOptions): (Diff | undefined) => {
-    const proc = (src: any, dst: any, schema: Schema<any>): (Diff | undefined) => {
+export const compare = (src: any, dst: any, schema: AnySchema, options?: CompareOptions): (Diff | undefined) => {
+    const proc = <T>(src: any, dst: any, schema: AnySchema): (Diff | undefined) => {
         if ((schema.type === 'string')
         || (schema.type === 'number')
         || (schema.type === 'integer')
@@ -777,6 +790,109 @@ export const assert = <T>(value: (T | undefined | null), schema: Schema<T>, opti
         throw new Error(`${options?.description ? `${options.description} ` : ''}assertion failed: ${issues.map(({ path, message }) => `${path.length > 0 ? `${path}: ` : ''}${message}`).join(', ')}`);
     } else {
         return value_;
+    }
+}
+
+export type PatchOptions = AssertOptions & {
+
+}
+
+export const patch = <T extends object>(target: (T | undefined | null), patch: (DeepPartial<T> | undefined | null), schema: Schema<T>, options?: PatchOptions): T => {
+    try {
+        if (isObject(target) === false) {
+            throw new Error('Target must be an object');
+        }
+        if (isObject(patch) === false) {
+            throw new Error('Patch must be an object');
+        }
+
+        const clonedTarget: T = (() => {
+            try {
+                return JSON.parse(JSON.stringify(target));
+            } catch (e) {
+                throw new Error(`Failed to clone target: ${e.message}`);
+            }
+        })();
+        const targetValid = (() => {
+            try {
+                return assert(clonedTarget, schema, options);
+            } catch (e) {
+                throw new Error(`Failed to validate target object: ${e.message}`);
+            }
+        })();
+        const patchValid = (() => {
+            try {
+                return assert(patch, schema, { ...options, partial: true });
+            } catch (e) {
+                throw new Error(`Failed to validate patch object: ${e.message}`);
+            }
+        })();
+
+        const assignPrimitive = (target: any, key: string, patch: any) => {
+            if ((patch !== null)
+            && (patch !== undefined)) {
+                if ((target[key] !== null)
+                && (target[key] !== undefined)) {
+                    if (typeof patch === typeof target[key]) {
+                        target[key] = patch;
+                    } else {
+                        throw new Error('Object shape mismatch');
+                    }
+                } else {
+                    target[key] = patch;
+                }
+            } else {
+                target[key] = patch;
+            }
+        }
+
+        const assignObject = (target: any, patch: any, schema?: SchemaObject<any>) => {
+            for (const [ key, patchValue ] of Object.entries(patch)) {
+                if (isObject(patchValue)) {
+                    target[key] ??= {};
+                    if (isObject(target[key])) {
+                        const patchSchema = schema?.props?.[key];
+                        assignObject(
+                            target[key],
+                            patchValue,
+                            ((patchSchema?.type === 'object')
+                                ? patchSchema
+                                : undefined)
+                        );
+                    } else {
+                        throw new Error('Object shape mismatch');
+                    }
+                } else if (isArray(patchValue)) {
+                    target[key] ??= [];
+                    if (isArray(target[key])) {
+                        const patchSchema = schema?.props?.[key];
+                        if ((patchSchema?.type === 'array')
+                        && (patchSchema?.item?.type === 'object')
+                        && isAssigned(patchSchema?.key)) {
+                            // assignKeyedArray
+                        } else {
+                            // assignArray
+                        }
+                    } else {
+                        throw new Error('Object shape mismatch');
+                    }
+                } else if (isMap(patchValue)) {
+
+                } else if (isSet(patchValue)) {
+
+                } else {
+                    assignPrimitive(target, key, patchValue);
+                }
+            }
+        }
+
+        try {
+            return assert(targetValid, schema, options);
+        } catch (e) {
+            throw new Error(`Failed to validate resulting object: ${e.message}`);
+        }
+    } catch (e) {
+        throw new Error(`Failed to patch object: ${e.message}`);
     }
 }
 

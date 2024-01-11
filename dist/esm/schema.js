@@ -653,6 +653,69 @@ export const assert = (value, schema, options) => {
         return value_;
     }
 };
+export const patch = (target, patch, schema, options) => {
+    try {
+        if (isObject(target) === false) {
+            throw new Error('Target must be an object');
+        }
+        if (isObject(patch) === false) {
+            throw new Error('Patch must be an object');
+        }
+        const clonedTarget = (() => {
+            try {
+                return JSON.parse(JSON.stringify(target));
+            }
+            catch (e) {
+                throw new Error(`Failed to clone target: ${e.message}`);
+            }
+        })();
+        const targetValid = (() => {
+            try {
+                return assert(clonedTarget, schema, options);
+            }
+            catch (e) {
+                throw new Error(`Failed to validate target object: ${e.message}`);
+            }
+        })();
+        const patchValid = (() => {
+            try {
+                return assert(patch, schema, Object.assign(Object.assign({}, options), { partial: true }));
+            }
+            catch (e) {
+                throw new Error(`Failed to validate patch object: ${e.message}`);
+            }
+        })();
+        const proc = (target, patch) => {
+            for (const [key, value] of Object.entries(patch)) {
+                if (isObject(value)) {
+                    if (isNotAssigned(target[key])) {
+                        target[key] = {};
+                        proc(target[key], value);
+                    }
+                    else if (isObject(target[key])) {
+                        proc(target[key], value);
+                    }
+                    else {
+                        throw new Error('Object shape mismatch');
+                    }
+                }
+                else {
+                    target[key] = value;
+                }
+            }
+        };
+        proc(targetValid, patchValid);
+        try {
+            return assert(targetValid, schema, options);
+        }
+        catch (e) {
+            throw new Error(`Failed to validate resulting object: ${e.message}`);
+        }
+    }
+    catch (e) {
+        throw new Error(`Failed to patch object: ${e.message}`);
+    }
+};
 export const INTEGER_REGEXP = /^-?\d+$/;
 export const NUMBER_REGEXP = /^-?\d*(\.\d+)?$/;
 export const POSITIVE_INTEGER_REGEXP = /^\d+$/;

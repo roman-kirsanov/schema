@@ -18,6 +18,9 @@ export declare const ifNotAssigned: <T>(value: T, value2: NonNullable<T>) => Non
 export declare const ifEmpty: (value: any, value2: string) => string;
 export declare const isCyclic: (value: any) => boolean;
 export declare const isDeepEqual: (value1: any, value2: any) => boolean;
+export declare type DeepPartial<T> = {
+    [K in keyof T]?: DeepPartial<T[K]>;
+};
 export declare type SchemaBase<T> = {
     readonly optional?: boolean;
     readonly nullable?: boolean;
@@ -81,7 +84,8 @@ export declare type SchemaFunction = SchemaBase<Function> & {
 export declare type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 };
-export declare type Schema<T = any> = (T extends Function ? SchemaFunction : T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) : T extends object ? SchemaObject<T> : T extends string ? SchemaString : T extends number ? SchemaNumber : T extends boolean ? SchemaBoolean : SchemaAny) | SchemaAny;
+export declare type Schema<T> = (T extends Function ? SchemaFunction : T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) : T extends object ? SchemaObject<T> : T extends string ? SchemaString : T extends number ? SchemaNumber : T extends boolean ? SchemaBoolean : SchemaAny) | SchemaAny;
+export declare type AnySchema = (SchemaFunction | SchemaArray<any> | SchemaTuple<any> | SchemaObject<any> | SchemaString | SchemaNumber | SchemaBoolean | SchemaAny);
 export declare type SchemaDataType<T> = T extends Schema<infer TT> ? TT : unknown;
 export declare type DiffBase<T> = {
     readonly action: 'add';
@@ -148,11 +152,13 @@ export declare type CompareOptions = {
     readonly srcPartial?: boolean;
     readonly dstPartial?: boolean;
 };
-export declare const compare: (src: any, dst: any, schema: Schema<any>, options?: CompareOptions) => (Diff | undefined);
+export declare const compare: (src: any, dst: any, schema: AnySchema, options?: CompareOptions) => (Diff | undefined);
 export declare type AssertOptions = ValidateOptions & {
     readonly description?: string;
 };
 export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions) => T;
+export declare type PatchOptions = AssertOptions & {};
+export declare const patch: <T extends object>(target: T | null | undefined, patch: DeepPartial<T> | null | undefined, schema: Schema<T>, options?: PatchOptions) => T;
 export declare const INTEGER_REGEXP: RegExp;
 export declare const NUMBER_REGEXP: RegExp;
 export declare const POSITIVE_INTEGER_REGEXP: RegExp;
