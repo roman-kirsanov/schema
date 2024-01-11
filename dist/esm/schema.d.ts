@@ -10,6 +10,7 @@ export declare const isDate: (value: any) => value is Date;
 export declare const isBool: (value: any) => value is boolean;
 export declare const isMap: (value: any) => value is Map<any, any>;
 export declare const isSet: (value: any) => value is Set<any>;
+export declare const isPrimitive: (value: any) => value is string | number | boolean;
 export declare const isAssigned: <T>(value: T) => value is NonNullable<T>;
 export declare const isNotAssigned: (value: any) => value is null | undefined;
 export declare const isEmpty: (value: any) => value is "" | null | undefined;
@@ -84,7 +85,7 @@ export declare type SchemaFunction = SchemaBase<Function> & {
 export declare type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 };
-export declare type Schema<T> = (T extends Function ? SchemaFunction : T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) : T extends object ? SchemaObject<T> : T extends string ? SchemaString : T extends number ? SchemaNumber : T extends boolean ? SchemaBoolean : SchemaAny) | SchemaAny;
+export declare type Schema<T> = (T extends Function ? SchemaFunction : T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) : T extends object ? SchemaObject<T> : T extends string ? SchemaString : T extends number ? SchemaNumber : T extends boolean ? SchemaBoolean : SchemaAny) | AnySchema;
 export declare type AnySchema = (SchemaFunction | SchemaArray<any> | SchemaTuple<any> | SchemaObject<any> | SchemaString | SchemaNumber | SchemaBoolean | SchemaAny);
 export declare type SchemaDataType<T> = T extends Schema<infer TT> ? TT : unknown;
 export declare type DiffBase<T> = {

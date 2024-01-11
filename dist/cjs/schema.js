@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.patch = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotAssigned = exports.isNonEmpty = exports.isEmpty = exports.isNotAssigned = exports.isAssigned = exports.isSet = exports.isMap = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
+exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.patch = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotAssigned = exports.isNonEmpty = exports.isEmpty = exports.isNotAssigned = exports.isAssigned = exports.isPrimitive = exports.isSet = exports.isMap = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
 const isPrototypeOf = (value, proto) => {
     if (!value || !proto)
         return false;
@@ -35,6 +35,8 @@ const isMap = (value) => (toString.call(value) === '[object Map]');
 exports.isMap = isMap;
 const isSet = (value) => (toString.call(value) === '[object Set]');
 exports.isSet = isSet;
+const isPrimitive = (value) => ((0, exports.isString)(value) || (0, exports.isNumber)(value) || (0, exports.isBool)(value));
+exports.isPrimitive = isPrimitive;
 const isAssigned = (value) => (value !== null && value !== undefined);
 exports.isAssigned = isAssigned;
 const isNotAssigned = (value) => (value === null || value === undefined);
@@ -711,26 +713,96 @@ const patch = (target, patch, schema, options) => {
                 throw new Error(`Failed to validate patch object: ${e.message}`);
             }
         })();
-        const proc = (target, patch) => {
-            for (const [key, value] of Object.entries(patch)) {
-                if ((0, exports.isObject)(value)) {
-                    if ((0, exports.isNotAssigned)(target[key])) {
-                        target[key] = {};
-                        proc(target[key], value);
-                    }
-                    else if ((0, exports.isObject)(target[key])) {
-                        proc(target[key], value);
+        const assignPrimitive = (target, key, patch) => {
+            if ((patch !== null)
+                && (patch !== undefined)) {
+                if ((target[key] !== null)
+                    && (target[key] !== undefined)) {
+                    if (typeof patch === typeof target[key]) {
+                        target[key] = patch;
                     }
                     else {
                         throw new Error('Object shape mismatch');
                     }
                 }
                 else {
-                    target[key] = value;
+                    target[key] = patch;
+                }
+            }
+            else {
+                target[key] = patch;
+            }
+        };
+        const assignArray = (target, patch, schema) => {
+            var _a;
+            if (((_a = schema === null || schema === void 0 ? void 0 : schema.item) === null || _a === void 0 ? void 0 : _a.type) === 'object') {
+                const key = schema === null || schema === void 0 ? void 0 : schema.key;
+                if (key) {
+                    const newTarget = [];
+                    for (const patchItem of patch) {
+                        const targetItem = target.find(i => i[key] === patchItem[key]);
+                        if (targetItem) {
+                            assignObject(targetItem, patchItem, schema === null || schema === void 0 ? void 0 : schema.item);
+                            newTarget.push(targetItem);
+                        }
+                        else {
+                            newTarget.push(JSON.parse(JSON.stringify(patchItem)));
+                        }
+                    }
+                    target.splice(0, target.length, ...newTarget);
+                }
+                else {
+                    const newTarget = [];
+                    for (let i = 0; i < patch.length; i++) {
+                        const patchItem = patch[i];
+                        const targetItem = target[i];
+                        if (targetItem) {
+                            assignObject(targetItem, patchItem);
+                            newTarget.push(targetItem);
+                        }
+                        else {
+                            newTarget.push(JSON.parse(JSON.stringify(patchItem)));
+                        }
+                    }
+                    target.splice(0, target.length, ...newTarget);
+                }
+            }
+            else {
+                target.splice(0, target.length, ...JSON.parse(JSON.stringify(patch)));
+            }
+        };
+        const assignObject = (target, patch, schema) => {
+            var _a, _b, _c;
+            for (const [key, patchValue] of Object.entries(patch)) {
+                const patchSchema = (_a = schema === null || schema === void 0 ? void 0 : schema.props) === null || _a === void 0 ? void 0 : _a[key];
+                if ((0, exports.isObject)(patchValue)) {
+                    (_b = target[key]) !== null && _b !== void 0 ? _b : (target[key] = {});
+                    if ((0, exports.isObject)(target[key])) {
+                        assignObject(target[key], patchValue, (((patchSchema === null || patchSchema === void 0 ? void 0 : patchSchema.type) === 'object')
+                            ? patchSchema
+                            : undefined));
+                    }
+                    else {
+                        throw new Error('Object shape mismatch');
+                    }
+                }
+                else if ((0, exports.isArray)(patchValue)) {
+                    (_c = target[key]) !== null && _c !== void 0 ? _c : (target[key] = []);
+                    if ((0, exports.isArray)(target[key])) {
+                        assignArray(target[key], patchValue, (((patchSchema === null || patchSchema === void 0 ? void 0 : patchSchema.type) === 'array')
+                            ? patchSchema
+                            : undefined));
+                    }
+                    else {
+                        throw new Error('Object shape mismatch');
+                    }
+                }
+                else {
+                    assignPrimitive(target, key, patchValue);
                 }
             }
         };
-        proc(targetValid, patchValid);
+        assignObject(clonedTarget, patchValid, schema);
         try {
             return (0, exports.assert)(targetValid, schema, options);
         }

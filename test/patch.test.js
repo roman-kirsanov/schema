@@ -3,48 +3,208 @@ const schema = require('../')
 
 module.exports = () => {
 
-    const obj1 = {
-        name: 'Name',
-        age: 23,
-        country: 'Mexico'
-    }
-
-    const patch = {
-        country: 'Japan'
-    }
-
-    const result = schema.patch(obj1, patch, {
+    const SCHEMA = {
         type: 'object',
         props: {
             name: { type: 'string' },
-            age: { type: 'integer' },
-            country: { type: 'string' }
+            keyedArray: {
+                type: 'array',
+                key: 'name',
+                item: {
+                    type: 'object',
+                    props: {
+                        name: { type: 'string' },
+                        age: { type: 'integer' },
+                        country: {
+                            type: 'object',
+                            props: {
+                                name: { type: 'string' },
+                                population: { type: 'integer' }
+                            }
+                        }
+                    }
+                }
+            },
+            objectArray: {
+                type: 'array',
+                item: {
+                    type: 'object',
+                    props: {
+                        name: { type: 'string' },
+                        age: { type: 'integer' }
+                    }
+                }
+            },
+            primitiveArray: {
+                type: 'array',
+                item: { type: 'string' }
+            }
         }
-    });
+    }
 
-    console.log(result);
+    let people = {
+        name: 'People',
+        keyedArray: [{
+            name: 'Roman',
+            age: 27,
+            country: {
+                name: 'Mexico',
+                population: 0
+            }
+        }, {
+            name: 'Perez',
+            age: 33,
+            country: {
+                name: 'Paprica',
+                population: 100
+            }
+        }],
+        objectArray: [{
+            name: 'Foo',
+            age: 123
+        }, {
+            name: 'Bar',
+            age: 321
+        }],
+        primitiveArray: [
+            'Foo',
+            'Bar'
+        ]
+    }
 
-    // const OBJ1 = { a: 'b' };
-    // const OBJ2 = new Date();
-    // const OBJ3 = { a: 'b', c: [1, 2], d: { e: 'f' } };
+    assert.deepEqual(people = schema.patch(people, {
+        keyedArray: [{
+            name: 'Roman',
+            country: {
+                population: 1000000
+            }
+        }, {
+            name: 'Julia',
+            age: 18,
+            country: {
+                name: 'Mexico',
+                population: 1111111
+            }
+        }]
+    }, SCHEMA), {
+        name: 'People',
+        keyedArray: [{
+            name: 'Roman',
+            age: 27,
+            country: { name: 'Mexico', population: 1000000 }
+        }, {
+            name: 'Julia',
+            age: 18,
+            country: { name: 'Mexico', population: 1111111 }
+        }],
+        objectArray: [{
+            name: 'Foo',
+            age: 123
+        }, {
+            name: 'Bar',
+            age: 321
+        }],
+        primitiveArray: [
+            'Foo',
+            'Bar'
+        ]
+    })
 
-    // assert.doesNotThrow(() => schema.assert(OBJ1,               { type: 'object' }));
-    // assert.doesNotThrow(() => schema.assert({},                 { type: 'object' }));
-    // assert.doesNotThrow(() => schema.assert({},                 { type: 'object', props: {} }));
-    // assert.doesNotThrow(() => schema.assert({},                 { type: 'object', props: { a: { type: 'string', optional: true } } }));
-    // assert.doesNotThrow(() => schema.assert({ a: 'b' },         { type: 'object', props: { a: { type: 'string' } } }));
-    // assert.doesNotThrow(() => schema.assert({ a: 'b', c: 'd' }, { type: 'object', props: { a: { type: 'string' } }, arbitrary: true }));
-    // assert.doesNotThrow(() => schema.assert(OBJ3,               { type: 'object', equal: { a: 'b', c: [1, 2], d: { e: 'f' } } }));
-    // assert.doesNotThrow(() => schema.assert(OBJ1,               { type: 'object', oneOf: [{ c: 'd' }, { a: 'b' }] }));
-    // assert.doesNotThrow(() => schema.assert(undefined,          { type: 'object', optional: true }));
-    // assert.doesNotThrow(() => schema.assert(null,               { type: 'object', nullable: true }));
+    assert.deepEqual(people = schema.patch(people, {
+        objectArray: [{
+            name: 'Baz',
+            age: 444
+        }]
+    }, SCHEMA), {
+        name: 'People',
+        keyedArray: [{
+            name: 'Roman',
+            age: 27,
+            country: { name: 'Mexico', population: 1000000 }
+        }, {
+            name: 'Julia',
+            age: 18,
+            country: { name: 'Mexico', population: 1111111 }
+        }],
+        objectArray: [{
+            name: 'Baz',
+            age: 444
+        }],
+        primitiveArray: [
+            'Foo',
+            'Bar'
+        ]
+    })
 
-    // assert.throws(() => schema.assert(OBJ2,               { type: 'object' }));
-    // assert.throws(() => schema.assert({ a: 'b' },         { type: 'object', props: {} }));
-    // assert.throws(() => schema.assert({},                 { type: 'object', props: { a: { type: 'string' } } }));
-    // assert.throws(() => schema.assert({ a: 'b', c: 'd' }, { type: 'object', props: { a: { type: 'string' } } }));
-    // assert.throws(() => schema.assert(OBJ3,               { type: 'object', equal: { a: 'b', c: [2, 1], d: { e: 'x' } } }));
-    // assert.throws(() => schema.assert(OBJ1,               { type: 'object', oneOf: [{ b: 'd' }, { a: 'c' }] }));
-    // assert.throws(() => schema.assert(undefined,          { type: 'object' }));
-    // assert.throws(() => schema.assert(null,               { type: 'object' }));
+    assert.deepEqual(people = schema.patch(people, {
+        primitiveArray: [
+            'Foo',
+            'Bar',
+            'Baz'
+        ]
+    }, SCHEMA), {
+        name: 'People',
+        keyedArray: [{
+            name: 'Roman',
+            age: 27,
+            country: { name: 'Mexico', population: 1000000 }
+        }, {
+            name: 'Julia',
+            age: 18,
+            country: { name: 'Mexico', population: 1111111 }
+        }],
+        objectArray: [{
+            name: 'Baz',
+            age: 444
+        }],
+        primitiveArray: [
+            'Foo',
+            'Bar',
+            'Baz'
+        ]
+    })
+
+    assert.deepEqual(people = schema.patch(people, {
+        keyedArray: [{
+            name: 'Roman',
+            age: 37
+        }, {
+            name: 'Julia',
+            age: 18,
+            country: { name: 'Mexico', population: 1111111 }
+        }, {
+            name: 'Boom.js',
+            age: 1,
+            country: { name: 'Mexico', population: 1 }
+        }],
+        primitiveArray: [
+            'a',
+            'b',
+            'c'
+        ]
+    }, SCHEMA), {
+        name: 'People',
+        keyedArray: [{
+            name: 'Roman',
+            age: 37,
+            country: { name: 'Mexico', population: 1000000 }
+        }, {
+            name: 'Julia',
+            age: 18,
+            country: { name: 'Mexico', population: 1111111 }
+        }, {
+            name: 'Boom.js',
+            age: 1,
+            country: { name: 'Mexico', population: 1 }
+        }],
+        objectArray: [{
+            name: 'Baz',
+            age: 444
+        }],
+        primitiveArray: [
+            'a',
+            'b',
+            'c'
+        ]
+    })
 }

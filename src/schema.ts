@@ -846,12 +846,46 @@ export const patch = <T extends object>(target: (T | undefined | null), patch: (
             }
         }
 
+        const assignArray = (target: any[], patch: any[], schema?: SchemaArray<any>) => {
+            if (schema?.item?.type === 'object') {
+                const key = schema?.key;
+                if (key) {
+                    const newTarget: any[] = [];
+                    for (const patchItem of patch) {
+                        const targetItem = target.find(i => i[key] === patchItem[key]);
+                        if (targetItem) {
+                            assignObject(targetItem, patchItem, schema?.item);
+                            newTarget.push(targetItem);
+                        } else {
+                            newTarget.push(JSON.parse(JSON.stringify(patchItem)));
+                        }
+                    }
+                    target.splice(0, target.length, ...newTarget);
+                } else {
+                    const newTarget: any[] = [];
+                    for (let i = 0; i < patch.length; i++) {
+                        const patchItem = patch[i];
+                        const targetItem = target[i];
+                        if (targetItem) {
+                            assignObject(targetItem, patchItem);
+                            newTarget.push(targetItem);
+                        } else {
+                            newTarget.push(JSON.parse(JSON.stringify(patchItem)));
+                        }
+                    }
+                    target.splice(0, target.length, ...newTarget);
+                }
+            } else {
+                target.splice(0, target.length, ...JSON.parse(JSON.stringify(patch)));
+            }
+        }
+
         const assignObject = (target: any, patch: any, schema?: SchemaObject<any>) => {
             for (const [ key, patchValue ] of Object.entries(patch)) {
+                const patchSchema = schema?.props?.[key];
                 if (isObject(patchValue)) {
                     target[key] ??= {};
                     if (isObject(target[key])) {
-                        const patchSchema = schema?.props?.[key];
                         assignObject(
                             target[key],
                             patchValue,
@@ -865,26 +899,23 @@ export const patch = <T extends object>(target: (T | undefined | null), patch: (
                 } else if (isArray(patchValue)) {
                     target[key] ??= [];
                     if (isArray(target[key])) {
-                        const patchSchema = schema?.props?.[key];
-                        if ((patchSchema?.type === 'array')
-                        && (patchSchema?.item?.type === 'object')
-                        && isAssigned(patchSchema?.key)) {
-                            // assignKeyedArray
-                        } else {
-                            // assignArray
-                        }
+                        assignArray(
+                            target[key],
+                            patchValue,
+                            ((patchSchema?.type === 'array')
+                                ? patchSchema
+                                : undefined)
+                        );
                     } else {
                         throw new Error('Object shape mismatch');
                     }
-                } else if (isMap(patchValue)) {
-
-                } else if (isSet(patchValue)) {
-
                 } else {
                     assignPrimitive(target, key, patchValue);
                 }
             }
         }
+
+        assignObject(clonedTarget, patchValid, schema as SchemaObject<T>);
 
         try {
             return assert(targetValid, schema, options);
