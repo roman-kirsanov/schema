@@ -306,8 +306,8 @@ export type ValidateOptions = {
     readonly fallback?: boolean;
 }
 
-export const validate = <T>(value: (T | null | undefined), schema: Schema<T>, options?: ValidateOptions): Issue[] => {
-    const proc = (obj: any, prop: (string | number), schema: Schema<T>, path: string): Issue[] => {
+export const validate = (value: any, schema: AnySchema, options?: ValidateOptions): Issue[] => {
+    const proc = (obj: any, prop: (string | number), schema: AnySchema, path: string): Issue[] => {
         if ((obj[prop] !== null) && (obj[prop] !== undefined)) {
             let ret: Issue[] = [];
             if (schema.type === 'string') {
@@ -772,7 +772,7 @@ export type AssertOptions = ValidateOptions & {
     readonly description?: string;
 }
 
-export const assert = <T>(value: (T | undefined | null), schema: Schema<T>, options?: AssertOptions): T => {
+export const assert = <T>(value: any, schema: AnySchema, options?: AssertOptions): T => {
     const value_ = ((value === undefined) ? (options?.fallback === true ? schema.fallback : undefined) : value);
     const issues = validate(value_, schema, options);
     if (issues.length > 0) {
@@ -786,7 +786,7 @@ export type PatchOptions = AssertOptions & {
 
 }
 
-export const patch = <T extends object>(target: (T | undefined | null), patch: (DeepPartial<T> | undefined | null), schema: Schema<T>, options?: PatchOptions): T => {
+export const patch = <T extends object>(target: (T | undefined | null), patch: (DeepPartial<T> | undefined | null), schema: SchemaObject<T>, options?: PatchOptions): T => {
     try {
         if (isObject(target) === false) {
             throw new Error('Target must be an object');

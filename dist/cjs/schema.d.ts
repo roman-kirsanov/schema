@@ -137,7 +137,7 @@ export declare type ValidateOptions = {
     readonly partial?: boolean;
     readonly fallback?: boolean;
 };
-export declare const validate: <T>(value: T | null | undefined, schema: Schema<T>, options?: ValidateOptions) => Issue[];
+export declare const validate: (value: any, schema: AnySchema, options?: ValidateOptions) => Issue[];
 export declare type CompareOptions = {
     readonly srcPartial?: boolean;
     readonly dstPartial?: boolean;
@@ -146,9 +146,9 @@ export declare const compare: (src: any, dst: any, schema: AnySchema, options?: 
 export declare type AssertOptions = ValidateOptions & {
     readonly description?: string;
 };
-export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions) => T;
+export declare const assert: <T>(value: any, schema: AnySchema, options?: AssertOptions) => T;
 export declare type PatchOptions = AssertOptions & {};
-export declare const patch: <T extends object>(target: T | null | undefined, patch: DeepPartial<T> | null | undefined, schema: Schema<T>, options?: PatchOptions) => T;
+export declare const patch: <T extends object>(target: T | null | undefined, patch: DeepPartial<T> | null | undefined, schema: SchemaObject<T>, options?: PatchOptions) => T;
 export declare const INTEGER_REGEXP: RegExp;
 export declare const NUMBER_REGEXP: RegExp;
 export declare const POSITIVE_INTEGER_REGEXP: RegExp;
