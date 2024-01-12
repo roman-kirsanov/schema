@@ -223,7 +223,7 @@ export type Schema<T> = (
     T extends number ? SchemaNumber :
     T extends boolean ? SchemaBoolean :
     SchemaAny
-) | AnySchema;
+);
 
 export type AnySchema = (
     SchemaFunction | SchemaArray<any[]> |
@@ -786,7 +786,7 @@ export type PatchOptions = AssertOptions & {
 
 }
 
-export const patch = <T extends object>(target: (T | undefined | null), patch: (DeepPartial<T> | undefined | null), schema: SchemaObject<T>, options?: PatchOptions): T => {
+export const patch = <T extends object>(target: (T | undefined | null), patch: (DeepPartial<T> | undefined | null), schema: Schema<T>, options?: PatchOptions): T => {
     try {
         if (isObject(target) === false) {
             throw new Error('Target must be an object');

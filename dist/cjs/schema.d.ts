@@ -19,10 +19,10 @@ export declare const ifNotAssigned: <T>(value: T, value2: NonNullable<T>) => Non
 export declare const ifEmpty: (value: any, value2: string) => string;
 export declare const isCyclic: (value: any) => boolean;
 export declare const isDeepEqual: (value1: any, value2: any) => boolean;
-export declare type DeepPartial<T> = {
+export type DeepPartial<T> = {
     [K in keyof T]?: DeepPartial<T[K]>;
 };
-export declare type SchemaBase<T> = {
+export type SchemaBase<T> = {
     readonly optional?: boolean;
     readonly nullable?: boolean;
     readonly fallback?: (T | null);
@@ -30,7 +30,7 @@ export declare type SchemaBase<T> = {
     readonly oneOf?: T[];
     readonly validate?: (obj: T) => Issue[];
 };
-export declare type SchemaString = SchemaBase<string> & {
+export type SchemaString = SchemaBase<string> & {
     readonly type: 'string';
     readonly allowEmpty?: boolean;
     readonly minLength?: number;
@@ -39,15 +39,15 @@ export declare type SchemaString = SchemaBase<string> & {
     readonly endsWith?: string;
     readonly matches?: RegExp;
 };
-export declare type SchemaNumber = SchemaBase<number> & {
+export type SchemaNumber = SchemaBase<number> & {
     readonly type: ('number' | 'integer');
     readonly minValue?: number;
     readonly maxValue?: number;
 };
-export declare type SchemaBoolean = SchemaBase<boolean> & {
+export type SchemaBoolean = SchemaBase<boolean> & {
     readonly type: 'boolean';
 };
-export declare type SchemaObject<T extends object> = SchemaBase<T> & {
+export type SchemaObject<T extends object> = SchemaBase<T> & {
     readonly type: 'object';
     readonly entry?: Schema<any>;
     readonly arbitrary?: boolean;
@@ -55,7 +55,7 @@ export declare type SchemaObject<T extends object> = SchemaBase<T> & {
         readonly [K in keyof Required<T>]: Schema<T[K]>;
     };
 };
-export declare type SchemaArray<T extends unknown[]> = SchemaBase<T> & {
+export type SchemaArray<T extends unknown[]> = SchemaBase<T> & {
     readonly type: 'array';
     readonly item?: Schema<T[0]>;
     readonly key?: string;
@@ -63,21 +63,21 @@ export declare type SchemaArray<T extends unknown[]> = SchemaBase<T> & {
     readonly minLength?: number;
     readonly maxLength?: number;
 };
-declare type Wrap<T> = T extends [infer Head, ...infer Tail] ? [Schema<Head>, ...Wrap<Tail>] : T;
-export declare type SchemaTuple<T extends unknown[]> = SchemaBase<[...T]> & {
+type Wrap<T> = T extends [infer Head, ...infer Tail] ? [Schema<Head>, ...Wrap<Tail>] : T;
+export type SchemaTuple<T extends unknown[]> = SchemaBase<[...T]> & {
     readonly type: 'tuple';
     readonly items: Wrap<T>;
 };
-export declare type SchemaFunction = SchemaBase<Function> & {
+export type SchemaFunction = SchemaBase<Function> & {
     readonly type: 'function';
 };
-export declare type SchemaAny = SchemaBase<any> & {
+export type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 };
-export declare type Schema<T> = (T extends Function ? SchemaFunction : T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) : T extends object ? SchemaObject<T> : T extends string ? SchemaString : T extends number ? SchemaNumber : T extends boolean ? SchemaBoolean : SchemaAny) | AnySchema;
-export declare type AnySchema = (SchemaFunction | SchemaArray<any[]> | SchemaTuple<any[]> | SchemaObject<object> | SchemaString | SchemaNumber | SchemaBoolean | SchemaAny);
-export declare type SchemaDataType<T> = T extends Schema<infer TT> ? TT : unknown;
-export declare type DiffBase<T> = {
+export type Schema<T> = (T extends Function ? SchemaFunction : T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) : T extends object ? SchemaObject<T> : T extends string ? SchemaString : T extends number ? SchemaNumber : T extends boolean ? SchemaBoolean : SchemaAny);
+export type AnySchema = (SchemaFunction | SchemaArray<any[]> | SchemaTuple<any[]> | SchemaObject<object> | SchemaString | SchemaNumber | SchemaBoolean | SchemaAny);
+export type SchemaDataType<T> = T extends Schema<infer TT> ? TT : unknown;
+export type DiffBase<T> = {
     readonly action: 'add';
     readonly newValue: (T | null);
 } | {
@@ -88,27 +88,27 @@ export declare type DiffBase<T> = {
     readonly action: 'delete';
     readonly oldValue: (T | null);
 };
-export declare type DiffString = DiffBase<string> & {
+export type DiffString = DiffBase<string> & {
     readonly type: 'string';
     readonly schema: SchemaString;
 };
-export declare type DiffNumber = DiffBase<number> & {
+export type DiffNumber = DiffBase<number> & {
     readonly type: ('number' | 'integer');
     readonly schema: SchemaNumber;
 };
-export declare type DiffBoolean = DiffBase<boolean> & {
+export type DiffBoolean = DiffBase<boolean> & {
     readonly type: 'boolean';
     readonly schema: SchemaBoolean;
 };
-export declare type DiffFunction = DiffBase<Function> & {
+export type DiffFunction = DiffBase<Function> & {
     readonly type: 'function';
     readonly schema: SchemaFunction;
 };
-export declare type DiffAny = DiffBase<any> & {
+export type DiffAny = DiffBase<any> & {
     readonly type: 'any';
     readonly schema: SchemaAny;
 };
-export declare type DiffObject = DiffBase<object> & {
+export type DiffObject = DiffBase<object> & {
     readonly type: 'object';
     readonly schema: SchemaObject<object>;
 } & {
@@ -116,39 +116,39 @@ export declare type DiffObject = DiffBase<object> & {
         readonly [key: string]: Diff;
     };
 };
-export declare type DiffTuple = DiffBase<any[]> & {
+export type DiffTuple = DiffBase<any[]> & {
     readonly type: 'tuple';
     readonly schema: SchemaTuple<any[]>;
 } & {
     readonly items: (Diff | undefined)[];
 };
-export declare type DiffArray = DiffBase<any[]> & {
+export type DiffArray = DiffBase<any[]> & {
     readonly type: 'array';
     readonly schema: SchemaArray<any[]>;
 } & {
     readonly items: (Diff | undefined)[];
 };
-export declare type Diff = (DiffString | DiffNumber | DiffBoolean | DiffAny | DiffFunction | DiffObject | DiffTuple | DiffArray);
-export declare type Issue = {
+export type Diff = (DiffString | DiffNumber | DiffBoolean | DiffAny | DiffFunction | DiffObject | DiffTuple | DiffArray);
+export type Issue = {
     readonly path: string;
     readonly message: string;
 };
-export declare type ValidateOptions = {
+export type ValidateOptions = {
     readonly partial?: boolean;
     readonly fallback?: boolean;
 };
 export declare const validate: (value: any, schema: AnySchema, options?: ValidateOptions) => Issue[];
-export declare type CompareOptions = {
+export type CompareOptions = {
     readonly srcPartial?: boolean;
     readonly dstPartial?: boolean;
 };
 export declare const compare: (src: any, dst: any, schema: AnySchema, options?: CompareOptions) => (Diff | undefined);
-export declare type AssertOptions = ValidateOptions & {
+export type AssertOptions = ValidateOptions & {
     readonly description?: string;
 };
 export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions) => T;
-export declare type PatchOptions = AssertOptions & {};
-export declare const patch: <T extends object>(target: T | null | undefined, patch: DeepPartial<T> | null | undefined, schema: SchemaObject<T>, options?: PatchOptions) => T;
+export type PatchOptions = AssertOptions & {};
+export declare const patch: <T extends object>(target: T | null | undefined, patch: DeepPartial<T> | null | undefined, schema: Schema<T>, options?: PatchOptions) => T;
 export declare const INTEGER_REGEXP: RegExp;
 export declare const NUMBER_REGEXP: RegExp;
 export declare const POSITIVE_INTEGER_REGEXP: RegExp;
