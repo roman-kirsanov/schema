@@ -185,22 +185,11 @@ export type SchemaBoolean = SchemaBase<boolean> & {
 export type SchemaObject<T extends object> = SchemaBase<T> & {
     readonly type: 'object';
     readonly entry?: Schema<any>;
-} & ({
     readonly arbitrary?: boolean;
     readonly props?: {
         readonly [K in keyof Required<T>]: Schema<T[K]>;
     }
-} | {
-    readonly arbitrary: false;
-    readonly props?: {
-        readonly [K in keyof Required<T>]: Schema<T[K]>;
-    }
-} | {
-    readonly arbitrary: true;
-    readonly props?: {
-        readonly [K in keyof Partial<T>]: Schema<T[K]>;
-    }
-})
+}
 
 export type SchemaArray<T extends unknown[]> = SchemaBase<T> & {
     readonly type: 'array';
