@@ -226,8 +226,8 @@ export type Schema<T> = (
 ) | AnySchema;
 
 export type AnySchema = (
-    SchemaFunction | SchemaArray<any> |
-    SchemaTuple<any> | SchemaObject<any> |
+    SchemaFunction | SchemaArray<any[]> |
+    SchemaTuple<any[]> | SchemaObject<object> |
     SchemaString | SchemaNumber |
     SchemaBoolean | SchemaAny
 );
@@ -271,9 +271,9 @@ export type DiffAny = DiffBase<any> & {
     readonly schema: SchemaAny;
 }
 
-export type DiffObject = DiffBase<any> & {
+export type DiffObject = DiffBase<object> & {
     readonly type: 'object';
-    readonly schema: SchemaObject<any>;
+    readonly schema: SchemaObject<object>;
 } & {
     readonly props: {
         readonly [key: string]: Diff;
@@ -772,7 +772,7 @@ export type AssertOptions = ValidateOptions & {
     readonly description?: string;
 }
 
-export const assert = <T>(value: any, schema: AnySchema, options?: AssertOptions): T => {
+export const assert = <T>(value: T | undefined | null, schema: Schema<T>, options?: AssertOptions): T => {
     const value_ = ((value === undefined) ? (options?.fallback === true ? schema.fallback : undefined) : value);
     const issues = validate(value_, schema, options);
     if (issues.length > 0) {
@@ -835,7 +835,7 @@ export const patch = <T extends object>(target: (T | undefined | null), patch: (
             }
         }
 
-        const assignArray = (target: any[], patch: any[], schema?: SchemaArray<any>) => {
+        const assignArray = (target: any[], patch: any[], schema?: SchemaArray<any[]>) => {
             if (schema?.item?.type === 'object') {
                 const key = schema?.key;
                 if (key) {
@@ -869,9 +869,9 @@ export const patch = <T extends object>(target: (T | undefined | null), patch: (
             }
         }
 
-        const assignObject = (target: any, patch: any, schema?: SchemaObject<any>) => {
+        const assignObject = (target: any, patch: any, schema?: SchemaObject<object>) => {
             for (const [ key, patchValue ] of Object.entries(patch)) {
-                const patchSchema = schema?.props?.[key];
+                const patchSchema = (schema?.props as any)?.[key];
                 if (isObject(patchValue)) {
                     target[key] ??= {};
                     if (isObject(target[key])) {

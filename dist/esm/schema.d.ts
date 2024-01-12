@@ -75,7 +75,7 @@ export declare type SchemaAny = SchemaBase<any> & {
     readonly type: 'any';
 };
 export declare type Schema<T> = (T extends Function ? SchemaFunction : T extends any[] ? (SchemaArray<T> | SchemaTuple<T>) : T extends object ? SchemaObject<T> : T extends string ? SchemaString : T extends number ? SchemaNumber : T extends boolean ? SchemaBoolean : SchemaAny) | AnySchema;
-export declare type AnySchema = (SchemaFunction | SchemaArray<any> | SchemaTuple<any> | SchemaObject<any> | SchemaString | SchemaNumber | SchemaBoolean | SchemaAny);
+export declare type AnySchema = (SchemaFunction | SchemaArray<any[]> | SchemaTuple<any[]> | SchemaObject<object> | SchemaString | SchemaNumber | SchemaBoolean | SchemaAny);
 export declare type SchemaDataType<T> = T extends Schema<infer TT> ? TT : unknown;
 export declare type DiffBase<T> = {
     readonly action: 'add';
@@ -108,9 +108,9 @@ export declare type DiffAny = DiffBase<any> & {
     readonly type: 'any';
     readonly schema: SchemaAny;
 };
-export declare type DiffObject = DiffBase<any> & {
+export declare type DiffObject = DiffBase<object> & {
     readonly type: 'object';
-    readonly schema: SchemaObject<any>;
+    readonly schema: SchemaObject<object>;
 } & {
     readonly props: {
         readonly [key: string]: Diff;
@@ -146,7 +146,7 @@ export declare const compare: (src: any, dst: any, schema: AnySchema, options?: 
 export declare type AssertOptions = ValidateOptions & {
     readonly description?: string;
 };
-export declare const assert: <T>(value: any, schema: AnySchema, options?: AssertOptions) => T;
+export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions) => T;
 export declare type PatchOptions = AssertOptions & {};
 export declare const patch: <T extends object>(target: T | null | undefined, patch: DeepPartial<T> | null | undefined, schema: SchemaObject<T>, options?: PatchOptions) => T;
 export declare const INTEGER_REGEXP: RegExp;
