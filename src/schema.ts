@@ -149,6 +149,14 @@ export const isDeepEqual = (value1: any, value2: any): boolean => {
     return proc(value1, value2);
 }
 
+// export type DeepPartial<T> = (
+//     T extends Function ? T :
+//     T extends any[] ? T :
+//     T extends object ? {
+//         [K in keyof T]?: DeepPartial<T[K]>;
+//     } : T
+// )
+
 export type DeepPartial<T> = {
     [K in keyof T]?: DeepPartial<T[K]>;
 }
@@ -916,7 +924,7 @@ export const patch = <T extends object>(target: (T | undefined | null), patch: (
     }
 }
 
-export const deepOptional = <T>(schema: Schema<T>): Schema<T> => {
+export const deepOptional = <T>(schema: Schema<T>): Schema<DeepPartial<T>> => {
     if (schema.type === 'object') {
         return {
             ...schema,
