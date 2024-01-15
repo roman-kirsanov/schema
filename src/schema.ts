@@ -916,6 +916,28 @@ export const patch = <T extends object>(target: (T | undefined | null), patch: (
     }
 }
 
+export const deepOptional = <T>(schema: Schema<T>): Schema<T> => {
+    if (schema.type === 'object') {
+        return {
+            ...schema,
+            entry: schema.entry ? deepOptional(schema.entry) : undefined,
+            props: schema.props ? Object.fromEntries(Object.entries<Schema<any>>(schema.props).map(([ key, value ]) => [ key, deepOptional(value) ])) : undefined
+        }
+    } else if (schema.type === 'array') {
+        return {
+            ...schema,
+            item: schema.item ? deepOptional(schema.item) : undefined
+        }
+    } else if (schema.type === 'tuple') {
+        return {
+            ...schema,
+            items: schema.items ? schema.items.map(i => deepOptional(i)) : undefined
+        }
+    } else {
+        return { ...schema };
+    }
+}
+
 export const INTEGER_REGEXP: RegExp = /^-?\d+$/
 export const NUMBER_REGEXP: RegExp = /^-?\d*(\.\d+)?$/
 export const POSITIVE_INTEGER_REGEXP: RegExp = /^\d+$/

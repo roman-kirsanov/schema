@@ -787,6 +787,20 @@ export const patch = (target, patch, schema, options) => {
         throw new Error(`Failed to patch object: ${e.message}`);
     }
 };
+export const deepPartial = (schema) => {
+    if (schema.type === 'object') {
+        return Object.assign(Object.assign({}, schema), { entry: schema.entry ? deepPartial(schema.entry) : undefined, props: schema.props ? Object.fromEntries(Object.entries(schema.props).map(([key, value]) => [key, deepPartial(value)])) : undefined });
+    }
+    else if (schema.type === 'array') {
+        return Object.assign(Object.assign({}, schema), { item: schema.item ? deepPartial(schema.item) : undefined });
+    }
+    else if (schema.type === 'tuple') {
+        return Object.assign(Object.assign({}, schema), { items: schema.items ? schema.items.map(i => deepPartial(i)) : undefined });
+    }
+    else {
+        return Object.assign({}, schema);
+    }
+};
 export const INTEGER_REGEXP = /^-?\d+$/;
 export const NUMBER_REGEXP = /^-?\d*(\.\d+)?$/;
 export const POSITIVE_INTEGER_REGEXP = /^\d+$/;
