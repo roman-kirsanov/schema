@@ -149,14 +149,6 @@ export const isDeepEqual = (value1: any, value2: any): boolean => {
     return proc(value1, value2);
 }
 
-// export type DeepPartial<T> = (
-//     T extends Function ? T :
-//     T extends any[] ? T :
-//     T extends object ? {
-//         [K in keyof T]?: DeepPartial<T[K]>;
-//     } : T
-// )
-
 export type DeepPartial<T> = {
     [K in keyof T]?: DeepPartial<T[K]>;
 }
