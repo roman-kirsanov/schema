@@ -787,15 +787,15 @@ export const patch = (target, patch, schema, options) => {
         throw new Error(`Failed to patch object: ${e.message}`);
     }
 };
-export const deepPartial = (schema) => {
+export const deepOptional = (schema) => {
     if (schema.type === 'object') {
-        return Object.assign(Object.assign({}, schema), { entry: schema.entry ? deepPartial(schema.entry) : undefined, props: schema.props ? Object.fromEntries(Object.entries(schema.props).map(([key, value]) => [key, deepPartial(value)])) : undefined });
+        return Object.assign(Object.assign({}, schema), { entry: schema.entry ? deepOptional(schema.entry) : undefined, props: schema.props ? Object.fromEntries(Object.entries(schema.props).map(([key, value]) => [key, deepOptional(value)])) : undefined });
     }
     else if (schema.type === 'array') {
-        return Object.assign(Object.assign({}, schema), { item: schema.item ? deepPartial(schema.item) : undefined });
+        return Object.assign(Object.assign({}, schema), { item: schema.item ? deepOptional(schema.item) : undefined });
     }
     else if (schema.type === 'tuple') {
-        return Object.assign(Object.assign({}, schema), { items: schema.items ? schema.items.map(i => deepPartial(i)) : undefined });
+        return Object.assign(Object.assign({}, schema), { items: schema.items ? schema.items.map(i => deepOptional(i)) : undefined });
     }
     else {
         return Object.assign({}, schema);

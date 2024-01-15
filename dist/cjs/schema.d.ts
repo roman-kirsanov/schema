@@ -149,7 +149,7 @@ export type AssertOptions = ValidateOptions & {
 export declare const assert: <T>(value: T | null | undefined, schema: Schema<T>, options?: AssertOptions) => T;
 export type PatchOptions = AssertOptions & {};
 export declare const patch: <T extends object>(target: T | null | undefined, patch: DeepPartial<T> | null | undefined, schema: Schema<T>, options?: PatchOptions) => T;
-export declare const deepPartial: <T>(schema: Schema<T>) => Schema<T>;
+export declare const deepOptional: <T>(schema: Schema<T>) => Schema<T>;
 export declare const INTEGER_REGEXP: RegExp;
 export declare const NUMBER_REGEXP: RegExp;
 export declare const POSITIVE_INTEGER_REGEXP: RegExp;

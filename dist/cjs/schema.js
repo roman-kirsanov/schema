@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.deepPartial = exports.patch = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotAssigned = exports.isNonEmpty = exports.isEmpty = exports.isNotAssigned = exports.isAssigned = exports.isPrimitive = exports.isSet = exports.isMap = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
+exports.MODERATE_PASSWORD_REGEXP = exports.COMPLEX_PASSWORD_REGEXP = exports.USERNAME_REGEXP = exports.WIN32_PATH_REGEXP = exports.UNIX_PATH_REGEXP = exports.PATH_REGEXP = exports.NAME_REGEXP = exports.SLUG_REGEXP = exports.IPV6_REGEXP = exports.IPV4_REGEXP = exports.UUID_REGEXP = exports.URL_REGEXP = exports.EMAIL_REGEXP = exports.DATETIME_REGEXP = exports.NEGATIVE_NUMBER_REGEXP = exports.NEGATIVE_INTEGER_REGEXP = exports.POSITIVE_NUMBER_REGEXP = exports.POSITIVE_INTEGER_REGEXP = exports.NUMBER_REGEXP = exports.INTEGER_REGEXP = exports.deepOptional = exports.patch = exports.assert = exports.compare = exports.validate = exports.isDeepEqual = exports.isCyclic = exports.ifEmpty = exports.ifNotAssigned = exports.isNonEmpty = exports.isEmpty = exports.isNotAssigned = exports.isAssigned = exports.isPrimitive = exports.isSet = exports.isMap = exports.isBool = exports.isDate = exports.isInteger = exports.isNumber = exports.isString = exports.isFunction = exports.isArray = exports.isObject = exports.isPromise = exports.isPrototypeOf = void 0;
 const isPrototypeOf = (value, proto) => {
     if (!value || !proto)
         return false;
@@ -815,21 +815,21 @@ const patch = (target, patch, schema, options) => {
     }
 };
 exports.patch = patch;
-const deepPartial = (schema) => {
+const deepOptional = (schema) => {
     if (schema.type === 'object') {
-        return Object.assign(Object.assign({}, schema), { entry: schema.entry ? (0, exports.deepPartial)(schema.entry) : undefined, props: schema.props ? Object.fromEntries(Object.entries(schema.props).map(([key, value]) => [key, (0, exports.deepPartial)(value)])) : undefined });
+        return Object.assign(Object.assign({}, schema), { entry: schema.entry ? (0, exports.deepOptional)(schema.entry) : undefined, props: schema.props ? Object.fromEntries(Object.entries(schema.props).map(([key, value]) => [key, (0, exports.deepOptional)(value)])) : undefined });
     }
     else if (schema.type === 'array') {
-        return Object.assign(Object.assign({}, schema), { item: schema.item ? (0, exports.deepPartial)(schema.item) : undefined });
+        return Object.assign(Object.assign({}, schema), { item: schema.item ? (0, exports.deepOptional)(schema.item) : undefined });
     }
     else if (schema.type === 'tuple') {
-        return Object.assign(Object.assign({}, schema), { items: schema.items ? schema.items.map(i => (0, exports.deepPartial)(i)) : undefined });
+        return Object.assign(Object.assign({}, schema), { items: schema.items ? schema.items.map(i => (0, exports.deepOptional)(i)) : undefined });
     }
     else {
         return Object.assign({}, schema);
     }
 };
-exports.deepPartial = deepPartial;
+exports.deepOptional = deepOptional;
 exports.INTEGER_REGEXP = /^-?\d+$/;
 exports.NUMBER_REGEXP = /^-?\d*(\.\d+)?$/;
 exports.POSITIVE_INTEGER_REGEXP = /^\d+$/;
